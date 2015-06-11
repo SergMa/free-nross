@@ -29,30 +29,36 @@ filename = './speech/lolita/lolita_tractor50.wav';
 
 [x,ffs,bits] = wavread(filename);
 if ffs~=FS
-    error('invalid fs');
+    error('invalid sample frequency of input wavefile');
 end
 
-% Make horizontal vector, if there is stereo file, use only first channel
+% Make horizontal vector. If wavefile is stereo, use only first channel
+% now x has range [-1..+1]
 x = x.';
 x = x(1,:);
 N = size(x,2);
 
-ATT = 1/16;
+% Attenuate input signal (to prevent overflow)
+ATT = 1/16;  %scale down factor
 x = ATT * x;
 
-% Cut signal, if needed
+% Limit lenght of signal, if needed
 % TC = 15; %sec
 % NC = TC*FS;
 % N = min(N,NC);
 % x = x(1:N);
 
-% Convert sample numbers into time ticks (we will use this in plots)
+% Convert sample numbers into time ticks (we will use this for plotting)
 t = 1:N;
 t = t/FS;
 
 % Plot input signal
 figure(1);
 plot(t,x);
+title('input (noised) signal');
+xlabel('t,sec');
+ylabel('x');
+ylim([-1*ATT, +1*ATT]);
 
 % Save input signal into input wavefile
 wavwrite(x',FS,bits,inputfilename);
@@ -69,6 +75,8 @@ corr = ones(1,SUBBANDS);
 
 % transmittance coefficients of filter bank subbands
 alpha = ones(1,SUBBANDS);
+ALPHA_MIN = 0.1;
+ALPHA_MAX = 1.0;
 
 % noise energy estimates of filter bank subbands
 noise_e = zeros(1,SUBBANDS);
@@ -84,7 +92,7 @@ energyx = my_energy_init(ENERGY_LEN);
 % Measurers of subband signals
 energies = energy_bank_init(SUBBANDS, ENERGY_LEN);
 
-% High-pass filter (cut freq is about 100 Hz)
+% High-pass filter (cut frequency is about 100 Hz)
 hf100_xdelay = 0;
 hf100_ydelay = 0;
 
@@ -95,7 +103,7 @@ vy_delay = my_delay_init( SUBBANDS, ENERGY_LEN );
 incrtime = zeros(1,SUBBANDS);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Обрабатываем сигнал (обработка речи)
+% ГЋГЎГ°Г ГЎГ ГІГ»ГўГ ГҐГ¬ Г±ГЁГЈГ­Г Г« (Г®ГЎГ°Г ГЎГ®ГІГЄГ  Г°ГҐГ·ГЁ)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 y = zeros(1,N);
@@ -195,11 +203,10 @@ for i=1:N
     end
     %signal_e = ey;
 
-    % Noise estimates
-    %INCR  = 0.000001 * ATT;
-    INCR  = 0.0000001; %* ATT;
-    INCR2 = 0.0000005; %* ATT;
-    INCR3 = 0.0000025; %* ATT;
+    % Estimate energy of noise (three speed increment factor)
+    INCR  = 0.0000001;
+    INCR2 = 0.0000005;
+    INCR3 = 0.0000025;
     for k=1:SUBBANDS
         if signal_e(k) < noise_e(k)
             incrtime(k) = 0;
@@ -234,8 +241,8 @@ for i=1:N
        end
     end
 
-    alpha = max(alpha,0.1);
-    alpha = min(alpha,1.00);
+    alpha = max(alpha,ALPHA_MIN);
+    alpha = min(alpha,ALPHA_MAX);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Calculate clean output signal
@@ -245,6 +252,8 @@ for i=1:N
 
     % get output signal as weighted sum of subband filters outputs
     y(i) = sum( corr .* alpha .* vy2 );
+    
+    % scale up
     y(i) = (1/ATT) * y(i);
 
     % Save values for plotting
@@ -312,6 +321,9 @@ end
 % Plot processed (clean) signal
 figure(2);
 plot(t,y);
+title('processed (clean) signal');
+xlabel('t,sec');
+ylabel('y');
 
 % Plot help graphics
 figure(3);
