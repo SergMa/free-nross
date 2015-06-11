@@ -7,7 +7,7 @@ system (i.e. system without reference source of noise signal). It
 may be usefull for telephony terminals, that work in noisy
 environment and have single microphone.
 
-Note: this noise suppressors has been created to work well only for
+Note: this noise suppressor has been created to work well only for
 speech signals.
 
 free-nross includes C and MATLAB/Octave/FreeMat code sources.
