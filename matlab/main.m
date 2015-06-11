@@ -217,120 +217,8 @@ for i=1:N
         end
     end
 
-    % Train noise suppressor
-    %TR = 1/8000;
-    %for k=1:SUBBANDS
-    %    noise_e(k) = noise_e(k) + (ey(k) - noise_e(k)) * TR;
-    %end
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Find transmittance coefficients for subbands
-
-    % Version 1 -----------------------------------------
-    %SENS = 20;
-    %alpha = 1 - SENS*noise_e;
-    %alpha = max(alpha,0.01);
-    %alpha = min(alpha,1.00);
-
-    % Version 2 -----------------------------------------
-    %a = (signal_e - noise_e) ./ (signal_e + 0.00001);
-    %ATR = 0.5;
-    %ATF = 0.99999;
-    %
-    %for k=1:SUBBANDS
-    %    if a(k) > alpha(k)
-    %        alpha(k) = a(k) - (a(k) - alpha(k)) * ATR;
-    %    else
-    %        alpha(k) = alpha(k) * ATF;
-    %    end
-    %end
-    %alpha = max(alpha,0.01);
-    %alpha = min(alpha,1.00);
-
-
-    % Version 3 -----------------------------------------
-    %SENS = 1;
-    %alpha = 1 - SENS * SUBBANDS * noise_e;
-    %alpha = max(alpha,0.01);
-    %alpha = min(alpha,2.00);
-
-    % Version 4 -----------------------------------------
-    %alpha = (ey - noise_e) ./ (ey + 0.00001);
-    %alpha = max(alpha,0.01);
-    %alpha = min(alpha,1.00);
-
-    % Version 5 -----------------------------------------
-    %avg_noise_e = mean(noise_e);
-    %for k=1:SUBBANDS
-    %    alpha(k) = avg_noise_e / (noise_e(k) + 0.00001);
-    %end
-    %alpha = alpha .* alpha;
-    %alpha = max(alpha,0.01);
-    %alpha = min(alpha,2.00);
-
-    % Version 6 -----------------------------------------
-    % Get spectrum of noise, use it to calculate transmittance coefficients
-    % Where noise is bigger, there coefficient is smaller
-    % Where noise is smaller, there coefficient is bigger
-    % Total energy must be constant
-    %min_noise_e = min(noise_e);
-    %max_noise_e = max(noise_e);
-    %avg_noise_e = mean(noise_e);
-    %ALPHA_MIN = 0.10;
-    %ALPHA_MAX = 4.00;
-    %A = (ALPHA_MIN - ALPHA_MAX) / (max_noise_e - min_noise_e + 0.00001);
-    %B = ALPHA_MAX - A * min_noise_e;
-    %alpha = A * noise_e + B;
-    % Normalize alphas (in average, alpha(k) = 1)
-    %alpha = alpha * (1*SUBBANDS/sum(alpha));
-    %alpha = max(alpha,0.01);
-    %alpha = min(alpha,2.00);
-
-    % Version 7 -----------------------------------------
-    %alpha = (signal_ee - noise_e) ./ (signal_ee + 0.0001);
-    %alpha = max(alpha,0.01);
-    %alpha = min(alpha,2.0);
-    % Normalize alphas (in average, alpha(k) = 1)
-    %alpha = alpha * (1*SUBBANDS/sum(alpha));
-
-
-    % Version 8 -----------------------------------------
-    % Noisegate with smoothing
-    %ALPHA = 0.8;
-    %for k=1:SUBBANDS
-    %    if vy(k) >= 0
-    %        if vy(k) >= noise_e(k)
-    %            vy(k) = vy(k) - ALPHA * noise_e(k);
-    %        else
-    %            vy(k) = vy(k)*vy(k)*(1-ALPHA)/(noise_e(k) + 0.00001);
-    %        end
-    %    else
-    %        if vy(k) <= -noise_e(k)
-    %            vy(k) = vy(k) + ALPHA * noise_e(k);
-    %        else
-    %            vy(k) = - vy(k)*vy(k)*(1-ALPHA)/(noise_e(k) + 0.00001);
-    %        end
-    %    end
-    %end
-
-    % Version 9 -----------------------------------------
-    % Noisegate with smoothing (use external function noisegate())
-    %T1 = 2.0;
-    %T2 = 1.8;
-    %T3 = 1.6;
-    %T4 = 1.4;
-    %T5 = 1.2;
-    %T6 = 1.1;
-    %T7 = 1.0;
-    %alpha = noisegate( signal_e, noise_e, T1,T2,T3,T4,T5,T6,T7 );
-
-    % Version 10 -----------------------------------------
-    % Where noise is bigger, there coefficient is smaller
-    % Where noise is smaller, there coefficient is bigger
-    % Total energy must be constant
-    %alpha = (signal_e - noise_e) ./ (signal_e + 0.0001);
-    %alpha = max(alpha,0.05);
-    %alpha = min(alpha,2.00);
 
     % Version 11 (works well) ----------------------------
     SENS = 1.5;
@@ -358,9 +246,6 @@ for i=1:N
     % get output signal as weighted sum of subband filters outputs
     y(i) = sum( corr .* alpha .* vy2 );
     y(i) = (1/ATT) * y(i);
-
-    % Filter out low frequencies (kill down hum)
-    %[y(i), hf100_xdelay, hf100_ydelay] = hf100( y(i), hf100_xdelay, hf100_ydelay );
 
     % Save values for plotting
     ttt_ex(i) = ex;
