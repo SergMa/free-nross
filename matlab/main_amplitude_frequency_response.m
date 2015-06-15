@@ -35,7 +35,7 @@ taps = filters.taps;
 % Measure amplitude frequency response
 afr_lin = zeros(SUBBANDS+1,N);
 afr_db  = zeros(SUBBANDS+1,N);
-t = 0 : Ts : 3*taps*Ts;
+t = 0 : Ts : 2*taps*Ts;
 xn = length(t);
 y = zeros(SUBBANDS+1,xn);
 for i=1:N
@@ -53,7 +53,7 @@ for i=1:N
                 y(:,j) = [vy'; out];
         end
         % get output amplitudes
-        y1 = y(: , end-taps:end); %do not use first taps samples (transient)
+        y1 = y(: , taps+1:end); %do not use first taps samples (transient process)
         y1 = abs(y1);
         afr_lin(:,i) = max(y1,[],2);
 end
