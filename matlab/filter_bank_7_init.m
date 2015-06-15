@@ -6,19 +6,23 @@
 % OUTPUT: state = created state of filters bank:
 %                 state.N
 %                 state.freqs
-%                 state.HF100_coeff ... state.LF3500_coeff
-%                 state.HF100 ... state.LF3500
+%                 state.taps
+%                 state.LF300_coeff ... state.HF4000_coeff
+%                 state.LF300 ... state.HF4000
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [state] = filter_bank_7_init
 
-        K = 1.0/32768;
+    % we shall use fixed point format - fract16 or (1.15), so
+    % all coefficients are integer.
+    K = 1.0/32768;
 
-        state.freqs = [ 300, 600, 900, 1200, 1500, 1800, 2100, 2500, 3000, 3500, 4000];
-        state.N     = length(state.freqs);
-        vy          = zeros(1,state.N);
+    state.freqs = [ 300, 600, 900, 1200, 1500, 1800, 2100, 2500, 3000, 3500, 4000];
+    state.N     = length(state.freqs);
+    vy          = zeros(1,state.N);
+    state.taps  = 53;
 
-        state.LF300_coeff  = K * [
+    state.LF300_coeff  = K * [
       -88,   -136,   -190,   -245,   -299,   -347,   -385,   -406,   -406,   ...
      -380,   -325,   -238,   -118,     36,    222,    436,    672,    925,   ...
      1186,   1447,   1698,   1930,   2133,   2301,   2426,   2503,   2529,   ...
@@ -26,9 +30,9 @@ function [state] = filter_bank_7_init
       672,    436,    222,     36,   -118,   -238,   -325,   -380,   -406,   ...
      -406,   -385,   -347,   -299,   -245,   -190,   -136,    -88
                                  ];
-        state.LF300        = my_filter_init(state.LF300_coeff);
+    state.LF300        = my_filter_init(state.LF300_coeff);
 
-        state.BF600_coeff  = K * [
+    state.BF600_coeff  = K * [
      -101,   -137,   -141,    -95,     12,    179,    389,    609,    794,   ...
       894,    865,    678,    329,   -155,   -715,  -1271,  -1730,  -2004,   ...
     -2026,  -1763,  -1229,   -481,    383,   1242,   1970,   2457,   2628,   ...
@@ -36,9 +40,9 @@ function [state] = filter_bank_7_init
     -1730,  -1271,   -715,   -155,    329,    678,    865,    894,    794,   ...
       609,    389,    179,     12,    -95,   -141,   -137,   -101
                                  ];
-        state.BF600        = my_filter_init(state.BF600_coeff);
+    state.BF600        = my_filter_init(state.BF600_coeff);
 
-        state.BF900_coeff  = K * [
+    state.BF900_coeff  = K * [
      -113,   -113,    -28,    144,    346,    479,    440,    176,   -271,   ...
      -754,  -1067,  -1025,   -556,    242,   1109,   1708,   1755,   1149,   ...
        37,  -1213,  -2143,  -2376,  -1775,   -512,    980,   2169,   2620,   ...
@@ -46,9 +50,9 @@ function [state] = filter_bank_7_init
      1755,   1708,   1109,    242,   -556,  -1025,  -1067,   -754,   -271,   ...
       176,    440,    479,    346,    144,    -28,   -113,   -113
                                  ];
-        state.BF900        = my_filter_init(state.BF900_coeff);
+    state.BF900        = my_filter_init(state.BF900_coeff);
 
-        state.BF1200_coeff  = K * [
+    state.BF1200_coeff  = K * [
      -108,    -54,    119,    303,    317,     51,   -391,   -698,   -559,   ...
        71,    842,   1190,    737,   -362,  -1424,  -1660,   -757,    809,   ...
      2014,   1967,    571,  -1325,  -2457,  -2010,   -213,   1771,   2622,   ...
@@ -56,9 +60,9 @@ function [state] = filter_bank_7_init
      -757,  -1660,  -1424,   -362,    737,   1190,    842,     71,   -559,   ...
      -698,   -391,     51,    317,    303,    119,    -54,   -108
                                  ];
-        state.BF1200        = my_filter_init(state.BF1200_coeff);
+    state.BF1200        = my_filter_init(state.BF1200_coeff);
 
-        state.BF1500_coeff  = K * [
+    state.BF1500_coeff  = K * [
       -99,     16,    218,    243,    -67,   -461,   -437,    159,    787,   ...
       665,   -297,  -1177,   -901,    479,   1595,   1115,   -691,  -1995,   ...
     -1276,    913,   2327,   1362,  -1117,  -2547,  -1361,   1274,   2624,   ...
@@ -66,9 +70,9 @@ function [state] = filter_bank_7_init
      -691,   1115,   1595,    479,   -901,  -1177,   -297,    665,    787,   ...
       159,   -437,   -461,    -67,    243,    218,     16,    -99
                                  ];
-        state.BF1500        = my_filter_init(state.BF1500_coeff);
+    state.BF1500        = my_filter_init(state.BF1500_coeff);
 
-        state.BF1800_coeff  = K * [
+    state.BF1800_coeff  = K * [
       -87,     81,    231,      9,   -377,   -260,    397,    625,   -161,   ...
      -941,   -363,    985,   1045,   -590,  -1607,   -239,   1732,   1270,   ...
     -1230,  -2110,    161,   2372,   1146,  -1865,  -2214,    706,   2625,   ...
@@ -76,9 +80,9 @@ function [state] = filter_bank_7_init
      1732,   -239,  -1607,   -590,   1045,    985,   -363,   -941,   -161,   ...
       625,    397,   -260,   -377,      9,    231,     81,    -87
                                  ];
-        state.BF1800        = my_filter_init(state.BF1800_coeff);
+    state.BF1800        = my_filter_init(state.BF1800_coeff);
 
-        state.BF2100_coeff  = K * [
+    state.BF2100_coeff  = K * [
       -73,    134,    154,   -231,   -273,    341,    436,   -454,   -642,   ...
       559,    888,   -644,  -1165,    696,   1460,   -707,  -1756,    670,   ...
      2036,   -585,  -2278,    455,   2466,   -288,  -2585,     99,   2625,   ...
@@ -86,9 +90,9 @@ function [state] = filter_bank_7_init
     -1756,   -707,   1460,    696,  -1165,   -644,    888,    559,   -642,   ...
      -454,    436,    341,   -273,   -231,    154,    134,    -73
                                  ];
-        state.BF2100        = my_filter_init(state.BF2100_coeff);
+    state.BF2100        = my_filter_init(state.BF2100_coeff);
 
-        state.BF2500_coeff  = K * [
+    state.BF2500_coeff  = K * [
         5,     10,     53,    -91,    -85,    265,     -1,   -474,    282,   ...
       582,   -751,   -421,   1269,   -117,  -1592,    979,   1464,  -1931,   ...
      -756,   2614,   -435,  -2698,   1786,   2035,  -2854,   -757,   3259,   ...
@@ -96,9 +100,9 @@ function [state] = filter_bank_7_init
      1464,    979,  -1592,   -117,   1269,   -421,   -751,    582,    282,   ...
      -474,     -1,    265,    -85,    -91,     53,     10,      5
                                  ];
-        state.BF2500        = my_filter_init(state.BF2500_coeff);
+    state.BF2500        = my_filter_init(state.BF2500_coeff);
 
-        state.BF3000_coeff  = K * [
+    state.BF3000_coeff  = K * [
      -184,    204,      1,   -262,    303,    -63,   -200,    217,    -50,   ...
         7,   -177,    209,    243,   -880,    842,    302,  -1714,   1822,   ...
         5,  -2384,   2929,   -669,  -2612,   3810,  -1540,  -2288,   4147,   ...
@@ -106,9 +110,9 @@ function [state] = filter_bank_7_init
     -1714,    302,    842,   -880,    243,    209,   -177,      7,    -50,   ...
       217,   -200,    -63,    303,   -262,      1,    204,   -184
                                  ];
-        state.BF3000        = my_filter_init(state.BF3000_coeff);
+    state.BF3000        = my_filter_init(state.BF3000_coeff);
 
-        state.BF3500_coeff  = K * [
+    state.BF3500_coeff  = K * [
       144,   -136,     54,     70,   -172,    200,   -148,     73,    -61,   ...
       159,   -324,    414,   -260,   -221,    929,  -1571,   1768,  -1244,   ...
         7,   1580,  -2901,   3341,  -2572,    752,   1502,  -3342,   4050,   ...
@@ -116,9 +120,9 @@ function [state] = filter_bank_7_init
      1768,  -1571,    929,   -221,   -260,    414,   -324,    159,    -61,   ...
        73,   -148,    200,   -172,     70,     54,   -136,    144
                                  ];
-        state.BF3500        = my_filter_init(state.BF3500_coeff);
+    state.BF3500        = my_filter_init(state.BF3500_coeff);
 
-        state.HF4000_coeff  = K * [
+    state.HF4000_coeff  = K * [
        59,   -128,    214,   -306,    391,   -451,    472,   -438,    342,   ...
      -185,    -24,    264,   -503,    707,   -836,    855,   -735,    461,   ...
       -34,   -527,   1187,  -1896,   2595,  -3222,   3718,  -4037,   4146,   ...
@@ -126,6 +130,6 @@ function [state] = filter_bank_7_init
      -735,    855,   -836,    707,   -503,    264,    -24,   -185,    342,   ...
      -438,    472,   -451,    391,   -306,    214,   -128,     59
                                  ];
-        state.HF4000        = my_filter_init(state.HF4000_coeff);
+    state.HF4000        = my_filter_init(state.HF4000_coeff);
 
 return

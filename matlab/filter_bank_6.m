@@ -6,8 +6,9 @@
 %         state = current state of filters bank
 %                 state.N
 %                 state.freqs
-%                 state.HF100_coeff ... state.LF3500_coeff
-%                 state.HF100 ... state.LF3500
+%                 state.taps
+%                 state.LF100_coeff ... state.HF4000_coeff
+%                 state.LF100 ... state.HF4000
 % OUTPUT: vy    = vector 1xN = filters outputs
 %         state = new state of filters bank
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

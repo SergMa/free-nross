@@ -6,17 +6,21 @@
 % OUTPUT:  state = created state of filters bank
 %                  state.N
 %                  state.freqs
+%                  state.taps
 %                  state.LF300_coeff ... state.HF4000_coeff
 %                  state.LF300 ... state.HF4000
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [state] = filter_bank_5_init
 
+    % we shall use fixed point format - fract16 or (1.15), so
+    % all coefficients are integer.
     K = 1.0/32768;
     
     state.freqs = [ 300, 600, 900, 1200, 1500, 1800, 2100, 2500, 3000, 3500, 4000];
     state.N     = length(state.freqs);
     vy          = zeros(1,state.N);
+    state.taps  = 25;
     
     state.LF300_coeff  = K * [
                                 253,    471,    707,    955,   1207,   1455,   1691,   1907,   2095,  ...
