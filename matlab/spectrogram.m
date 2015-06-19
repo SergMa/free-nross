@@ -5,8 +5,8 @@
 %          width   - width of spectrogram, must be power of 2 (16,32,64,128,256,512,1024,2048,4096)
 %          fs      - sample frequency, Hz
 %          ovr     - overlay factor of fft pieces, must be mod(width,ovr)==0
-% OUTPUTS: ---
-function [] = spectrogram( x, width, fs, ovr )
+% OUTPUTS: s = spectrogram array
+function [s] = spectrogram( x, width, fs, ovr )
 
     % this function is based on spectrogram examples
     % http://dsp.stackexchange.com/questions/12803/get-spectrogram-matrix-without-specgram-in-matlab
@@ -52,16 +52,17 @@ function [] = spectrogram( x, width, fs, ovr )
     end
 
     % make FFT, logarithmic scale
-    y = 20*log10( abs(fft(z)) );
+    MIN_POWER = 10^(-120/20); %-120 dB
+    s = 20*log10( abs(fft(z)) + MIN_POWER );
 
     % cut off half of FFT output
-    y = y(1:width/2 , :);
+    s = s(1:width/2 , :);
 
     % plot spectrogram in current axis
     time = (0:N)/fs;
     freq = 0:fs/2/width:fs/2;
 
-    imagesc(time,freq,y);
+    imagesc(time,freq,s);
     axis xy;
     xlabel('time,sec');
     ylabel('freq,Hz');
