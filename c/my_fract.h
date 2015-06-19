@@ -52,7 +52,7 @@ typedef   long                  fract32;
 #define  ASHIFT16(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift, no saturation
 #define  MIN16(a,b)     ((a<b)?(a):(b))
 #define  MAX16(a,b)     ((a>b)?(a):(b))
-#define  DIV16(a,b)     (a/b)                               //(1.15)/(1.15) ??? TODO
+#define  DIV16(a,b)     ((((s32)a)<<15)/((s32)b))           //(1.15)/(1.15)=(2.30)/(1.15)=(1.15)
 
 #endif
 
@@ -89,7 +89,7 @@ typedef   long                  fract32;
 #define  ASHIFT32(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift, no saturation
 #define  MIN32(a,b)     ((a<b)?(a):(b))
 #define  MAX32(a,b)     ((a>b)?(a):(b))
-#define  DIV3216(a,b)   (a/b)                 //(1.31)/(1.15) = ??? TODO
+#define  DIV3216(a,b)   ((((s32)a)<<1)/((s32)b))            //(1.31)/(1.15) = (2.30)/(1.15) = (1.15)
 
 #endif
 
