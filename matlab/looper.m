@@ -12,7 +12,7 @@ function [y] = looper(x,M)
 
     y = x;
     while(1)
-        y = [y; x];
+        y = [y, x];
         if( length(y) >= M )
             break;
         end
