@@ -7,33 +7,18 @@
 #ifndef MYLOG_H
 #define MYLOG_H
 
-#include "../../shared/log_settings.h"
-#include "../../shared/utilites.h"
-
+#include <stdlib.h>
 #include <stdarg.h>
 #include <syslog.h>
 #include <sys/types.h>
 
-#define MYLOGSYNC_ENABLE 1 //uncomment this to enable fflush, fsunc for log files
-
-extern char   mylog_strbuff[4096];
-extern int    mylog_len;
-extern char * mylog_ptr;
-
 //---- FUNCTIONS ---------------------------------------------
-
-void mylog_out      ( const char * logtype, int line, const char * func, const char * format, ... );
-void mylog_out_error(                       int line, const char * func, const char * format, ... );
-
-
-#define PROCNAME "RTP"
 
 #define MYLOGDEVICE_NOLOGS     0
 #define MYLOGDEVICE_STDOUT     1  //printf()
-#define MYLOGDEVICE_SYSLOG     2  //syslog()
 
 #ifndef MYLOGDEVICE
-#define MYLOGDEVICE MYLOGDEVICE_NOLOGS
+#define MYLOGDEVICE MYLOGDEVICE_STDOUT
 #endif
 
     //////////////////////////////////////////////////////////////
@@ -58,7 +43,7 @@ void mylog_out_error(                       int line, const char * func, const c
     #define MYLOG_REALTIME(mess...)
 
     //////////////////////////////////////////////////////////////
-#elif (MYLOGDEVICE == MYLOGDEVICE_STDOUT) || (MYLOGDEVICE == MYLOGDEVICE_SYSLOG)
+#elif (MYLOGDEVICE == MYLOGDEVICE_STDOUT)
     //////////////////////////////////////////////////////////////
 
     #define MYLOG_SCREEN(mess...)                                 \
@@ -69,72 +54,72 @@ void mylog_out_error(                       int line, const char * func, const c
 
     #define MYLOG_USER(mess...)                                   \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_USER) {       \
-                mylog_out("USE",__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("USE %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     #define MYLOG_ERROR(mess...)                                  \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_ERROR) {      \
-                mylog_out_error(__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("ERR %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     #define MYLOG_WARNING(mess...)                                \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_WARNING) {    \
-                mylog_out("WAR",__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("WAR %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     #define MYLOG_EVENT(mess...)                                  \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_EVENT) {      \
-                mylog_out("EVE",__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("EVE %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     #define MYLOG_MESSAGE(mess...)                                \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_MESSAGE) {    \
-                mylog_out("MES",__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("MES %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     #define MYLOG_STATE(mess...)                                  \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_STATE) {      \
-                mylog_out("STA",__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("STA %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     #define MYLOG_DEBUG(mess...)                                  \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_DEBUG) {      \
-                mylog_out("DEB",__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("USE %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     #define MYLOG_TRACE(mess...)                                  \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_TRACE) {      \
-                mylog_out("TRA",__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("TRA %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     #define MYLOG_GOD(mess...)                                    \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_GOD) {        \
-                mylog_out("GOD",__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("GOD %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     #define MYLOG_REALTIME(mess...)                               \
         do{                                                       \
-            if(log_settings.enabled & MYLOG_ENABLED_REALTIME) {   \
-                mylog_out("REA",__LINE__,__FUNCTION__,mess);      \
-            }                                                     \
+            printf("REA %d:%s: ",__LINE__,__FUNCTION__);          \
+            printf(mess);                                         \
+            printf("\n");                                         \
         }while(0)
 
     //////////////////////////////////////////////////////////////

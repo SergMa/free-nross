@@ -6,8 +6,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <wave.h>
+#include <noise_remover.h>
 
-void usage(progname)
+
+void usage(char * progname)
 {
     printf("%s usage:\n",progname);
     printf("\t%s <wavefile1> <wavefile2>\n", progname);
@@ -27,10 +31,11 @@ int main( int argc, char **argv )
     char       * output_filename;
     wavefile_t * iwf = NULL;
     wavefile_t * owf = NULL;
-    int16_t      x;
-    int16_t      y;
+    int16_t      xbuf[320];
+    int16_t      ybuf[320];
     uint32_t     samples;
     uint32_t     processed;
+    int i;
 
     if(argc<=0) {
         printf("error: unexpected error\n");
@@ -90,10 +95,10 @@ int main( int argc, char **argv )
         printf("error: only 8000 hz pcm16/pcma/pcmu/gsm formats are supported\n");
         goto exit_fail;
     }
-    printf("filesize : %lu bytes\n", wavefile_get_bytes  ( iwf ) );
-    printf("length   : %lu sec\n",   wavefile_get_seconds( iwf ) );
+    printf("filesize : %u bytes\n", wavefile_get_bytes  ( iwf ) );
+    printf("length   : %u sec\n",   wavefile_get_seconds( iwf ) );
     samples = wavefile_get_samples( iwf );
-    printf("samples  : %lu\n", samples );
+    printf("samples  : %u\n", samples );
     printf("\n");
 
     /**** open output wavefile ****/
@@ -111,7 +116,7 @@ int main( int argc, char **argv )
          *  1 = end of file
          * -1 = error
          */
-        err = wavefile_read_voice ( iwf, &x, 1 );  /* samples=1 */
+        err = wavefile_read_voice ( iwf, xbuf, 320 );  /* samples=320 */
         if(err<0) {
             printf("\nerror: could not read sample from input file\n");
             break;
@@ -120,20 +125,21 @@ int main( int argc, char **argv )
             break;
         }
         /* process audio */
-        у = noise_remover ( &nrm, x, 1 );  /* training=1 */
-    
+        for(i=0; i<320; i++) {
+            ybuf[i] = noise_remover ( &nrm, xbuf[i], 1 );  /* training=1 */
+        }
         /* write cleaned sound to output wavefile */
-        err = wavefile_write_voice ( owf, &y, 1 ); /* samples=1 */
+        err = wavefile_write_voice ( owf, ybuf, 320 ); /* samples=320 */
         if(err<0) {
             printf("\nerror: could not write sample to output file\n");
             break;
         }
         
         processed++;
-        printf("\rprocessed: %lu %%", processed*100/samples);
+        printf("\rprocessed: %u %%", processed*100/samples);
     }
     printf("\n");
-    printf("%lu samples has been processed\n", processed);
+    printf("%u samples has been processed\n", processed);
     
     /* Close input/output wave-files */
     (void) wavefile_close( owf );

@@ -4,11 +4,12 @@
 /* (c) Sergei Mashkin, 2015                                                   */
 /******************************************************************************/
 
-#include "wave.h"
-#include "../shared/mylog.h"
+#include <wave.h>
+#include <mylog.h>
 
-#include  "../codecs/g711/g711super.h"
-#include  "../codecs/gsmlib/gsm.h"      //GSM0610    (13 kbit/s)
+#include  <string.h>
+#include  <g711super.h>
+#include  <gsm.h>      //GSM0610    (13 kbit/s)
 
 
 //types of audio coding type (look for standards)

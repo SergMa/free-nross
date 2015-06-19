@@ -26,6 +26,7 @@ typedef long fract32;
 /**********************************************************/
 /* FRACT 16 UTILITES                                      */
 /**********************************************************/
+#ifdef _bfin_
 
 #define  MULT16(a,b)    __builtin_bfin_multr_fr1x16(a,b)
 #define  ADD16(a,b)     __builtin_bfin_add_fr1x16(a,b)
@@ -39,12 +40,30 @@ typedef long fract32;
 #define  MAX16(a,b)     __builtin_bfin_max_fr1x16(a,b)
 #define  DIV16(a,b)     BF_DIV16(a,b)
 
+#else
+
+#define  MULT16(a,b)    (a*b)
+#define  ADD16(a,b)     (a+b)
+#define  SUB16(a,b)     (a-b)
+#define  ABS16(a)       ((a>=0)?(a):(-a))
+#define  NEG16(a)       (-(a))
+#define  ASHL16(a,b)    (a<<b)  //b>=0  arithmetical left shift
+#define  ASHR16(a,b)    (a>>b)  //b>=0  arithmetical right shift
+#define  ASHIFT16(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift
+#define  MIN16(a,b)     ((a<b)?(a):(b))
+#define  MAX16(a,b)     ((a>b)?(a):(b))
+#define  DIV16(a,b)     (a/b)
+
+#endif
+
 /**********************************************************/
 /* FRACT 32 UTILITES                                      */
 /**********************************************************/
 
 #define  FRACT32_TO_FLOAT(a)  ((float)((fract32)(a))/(32768.0*65536.0))
 #define  FLOAT_TO_FRACT32(a)  ((fract32)((a)*32768*65536))
+
+#ifdef _bfin_
 
 #define  MULT32(a,b)   BF_MULT32(a,b)
 #define  ADD32(a,b)    BF_ADD32(a,b)
@@ -58,11 +77,27 @@ typedef long fract32;
 #define  MAX32(a,b)    BF_MAX32(a,b)
 #define  DIV3216(a,b)  DIV32_16(a,b)
 
+#else
+
+#define  MULT32(a,b)    (a*b)
+#define  ADD32(a,b)     (a+b)
+#define  SUB32(a,b)     (a-b)
+#define  ABS32(a)       ((a>=0)?(a):(-a))
+#define  NEG32(a)       (-(a))
+#define  ASHL32(a,b)    (a<<b)  //b>=0  arithmetical left shift
+#define  ASHR32(a,b)    (a>>b)  //b>=0  arithmetical right shift
+#define  ASHIFT32(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift
+#define  MIN32(a,b)     ((a<b)?(a):(b))
+#define  MAX32(a,b)     ((a>b)?(a):(b))
+#define  DIV3216(a,b)   (a/b)
+
+#endif
+
 /**********************************************************/
 /* FRACT 16/32 UTILITES                                   */
 /**********************************************************/
 
-static union {
+volatile static union {
         struct {
                 fract16 lo;
                 fract16 hi;
@@ -77,6 +112,8 @@ static union {
 /**********************************************************/
 /* UTILITES IMPLEMENTATIONS                               */
 /**********************************************************/
+
+#ifdef _bfin_
 
 static inline fract16 DIV32_16(fract32 a, fract16 b)
 {
@@ -191,5 +228,7 @@ static inline fract32 BF_ASHIFT32(fract32 a, signed short b)
             );
         return res;
 }
+
+#endif
 
 #endif /* DSP_MYFRACT_H */

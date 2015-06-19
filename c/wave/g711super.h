@@ -7,7 +7,7 @@
 #ifndef G711SUPER_H
 #define G711SUPER_H
 
-#include "../../shared/types.h"
+#include <types.h>
 
 //------------------------------------------------------------
 inline void  init_g711(void);

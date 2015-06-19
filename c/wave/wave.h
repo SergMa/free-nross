@@ -14,8 +14,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "../shared/types.h"
-#include "../shared/default_settings.h"
+#include <types.h>
 
 /*************************************************************/
 /* DEFINITIONS                                               */

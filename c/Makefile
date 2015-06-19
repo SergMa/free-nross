@@ -1,42 +1,66 @@
-#
-# Programmed: Serg Mashkin
-#
+#########################################
+# Makefile for free-nross test programm #
+#                                       #
+# (c) Sergei Mashkin, 2015              #
+#########################################
 
-PROJ = test
+PROJ = free-nross
 
-OUT = out/Release
+CROSS_COMPILE = 
+OUT     = out
+HEADERS =
+CFLAGS  = -O0 -Wall -Werror
+DEFS    = 
 
+CFLAGS += -I.\
+          -Iwave\
+          -Iwave/gsmlib \
+          -include "wave/gsmlib/_config.h"
 
-WAV_DIR = wave
-GSM_DIR = wave/gsmlib
+LFLAGS = 
 
-DEFS += 
-CFLAGS += -Wa
-LFLAGS = -lm
 CC = $(CROSS_COMPILE)gcc $(CFLAGS) $(DEFS)
 LD = $(CROSS_COMPILE)gcc $(LFLAGS)
 
 all: $(OUT)/$(PROJ)
 
-OBJS =  $(OUT)/test.o \
-        $(OUT)/noise_remover.o \
-        $(OUT)/utilites.o
+GSMLIB_OBJS = $(OUT)/code.o \
+	$(OUT)/debug.o \
+	$(OUT)/decode.o \
+	$(OUT)/gsmadd.o \
+	$(OUT)/gsm_create.o \
+	$(OUT)/gsm_decode.o \
+	$(OUT)/gsm_destroy.o \
+	$(OUT)/gsm_encode.o \
+	$(OUT)/gsm_explode.o \
+	$(OUT)/gsm_implode.o \
+	$(OUT)/gsm_option.o \
+	$(OUT)/gsm_print.o \
+	$(OUT)/long_term.o \
+	$(OUT)/lpc.o \
+	$(OUT)/preprocess.o \
+	$(OUT)/rpe.o \
+	$(OUT)/short_term.o \
+	$(OUT)/table.o
 
-ifneq ($(MAKECMDGOALS),clean)
--include $(OBJS:%.o=%.d)
-endif
+WAVE_OBJS = $(GSMLIB_OBJS) \
+	$(OUT)/g711super.o \
+	$(OUT)/mylog.o \
+	$(OUT)/wave.o
 
-$(OUT)/%.o: %.c
-	$(CC) -c $< -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o $@
+OBJS = $(WAVE_OBJS) \
+	$(OUT)/noise_remover.o \
+	$(OUT)/test.o
+
+VPATH := wave wave/gsmlib
+
+$(OUT)/%.o: %.c $(HEADERS)
+	$(CC) -g -c $< -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o $@
 
 $(OUT)/$(PROJ): $(OBJS) Makefile
-	$(LD) $(OBJS)  -o $@
-
-install romfs:
-	$(ROMFSINST) -d out/Release/$(PROJ) /usr/bin/$(PROJ)
+	$(LD) $(OBJS) -o $@
 
 clean:
-	rm -f out/Debug/*
-	rm -f out/Release/*
+	rm -f $(OUT)/*
 
-.PHONY: all compile install romfs clean
+.PHONY: all compile clean
