@@ -3,25 +3,25 @@
 /* (c) Mashkin S.V.                                       */
 /**********************************************************/
 
-#ifndef DSP_MYFRACT_H
-#define DSP_MYFRACT_H
+#ifndef MY_FRACT_H
+#define MY_FRACT_H
 
 /**********************************************************/
 /* Type definitions                                       */
 /**********************************************************/
 
-typedef unsigned char           u8;
-typedef unsigned short          u16;
-typedef unsigned int            u32;
-typedef unsigned long long      u64;
+typedef   unsigned char         u8;
+typedef   unsigned short        u16;
+typedef   unsigned int          u32;
+typedef   unsigned long long    u64;
 typedef   signed char           s8;
 typedef   signed short          s16;
 typedef   signed int            s32;
 typedef   signed long long      s64;
 
 
-typedef short fract16;
-typedef long fract32;
+typedef   short                 fract16;
+typedef   long                  fract32;
 
 /**********************************************************/
 /* FRACT 16 UTILITES                                      */
@@ -42,17 +42,17 @@ typedef long fract32;
 
 #else
 
-#define  MULT16(a,b)    (a*b)
-#define  ADD16(a,b)     (a+b)
-#define  SUB16(a,b)     (a-b)
-#define  ABS16(a)       ((a>=0)?(a):(-a))
-#define  NEG16(a)       (-(a))
-#define  ASHL16(a,b)    (a<<b)  //b>=0  arithmetical left shift
-#define  ASHR16(a,b)    (a>>b)  //b>=0  arithmetical right shift
-#define  ASHIFT16(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift
+#define  MULT16(a,b)    (fract16)((((s32)a)*((s32)b))>>15)  //(1.15)*(1.15)=(2.30) -> convert into (1.15)
+#define  ADD16(a,b)     (a+b)                               //no saturation
+#define  SUB16(a,b)     (a-b)                               //no saturation
+#define  ABS16(a)       ((a>=0)?(a):(-a))                   //no saturation
+#define  NEG16(a)       (-(a))                              //no saturation
+#define  ASHL16(a,b)    (a<<b)  //b>=0  arithmetical left shift,  no saturation
+#define  ASHR16(a,b)    (a>>b)  //b>=0  arithmetical right shift, no saturation
+#define  ASHIFT16(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift, no saturation
 #define  MIN16(a,b)     ((a<b)?(a):(b))
 #define  MAX16(a,b)     ((a>b)?(a):(b))
-#define  DIV16(a,b)     (a/b)
+#define  DIV16(a,b)     (a/b)                               //(1.15)/(1.15) ??? TODO
 
 #endif
 
@@ -79,17 +79,17 @@ typedef long fract32;
 
 #else
 
-#define  MULT32(a,b)    (a*b)
-#define  ADD32(a,b)     (a+b)
-#define  SUB32(a,b)     (a-b)
-#define  ABS32(a)       ((a>=0)?(a):(-a))
-#define  NEG32(a)       (-(a))
-#define  ASHL32(a,b)    (a<<b)  //b>=0  arithmetical left shift
-#define  ASHR32(a,b)    (a>>b)  //b>=0  arithmetical right shift
-#define  ASHIFT32(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift
+#define  MULT32(a,b)    (fract32)((((s64)a)*((s64)b))>>31) //(1.31)*(1.31)=(2.62) -> convert into (1.31)
+#define  ADD32(a,b)     (a+b)                              //no saturation
+#define  SUB32(a,b)     (a-b)                              //no saturation
+#define  ABS32(a)       ((a>=0)?(a):(-a))                  //no saturation
+#define  NEG32(a)       (-(a))                             //no saturation
+#define  ASHL32(a,b)    (a<<b)  //b>=0  arithmetical left shift,  no saturation
+#define  ASHR32(a,b)    (a>>b)  //b>=0  arithmetical right shift, no saturation
+#define  ASHIFT32(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift, no saturation
 #define  MIN32(a,b)     ((a<b)?(a):(b))
 #define  MAX32(a,b)     ((a>b)?(a):(b))
-#define  DIV3216(a,b)   (a/b)
+#define  DIV3216(a,b)   (a/b)                 //(1.31)/(1.15) = ??? TODO
 
 #endif
 
@@ -231,4 +231,4 @@ static inline fract32 BF_ASHIFT32(fract32 a, signed short b)
 
 #endif
 
-#endif /* DSP_MYFRACT_H */
+#endif /* MY_FRACT_H */
