@@ -29,8 +29,8 @@ int main( int argc, char **argv )
     struct noise_remover_s nrm;
     int          err;
     char       * progname;
-    char       * input_filename;
-    char       * output_filename;
+    char       * input_filename  = NULL;
+    char       * output_filename = NULL;
     wavefile_t * iwf = NULL;
     wavefile_t * owf = NULL;
     int16_t      x;
@@ -608,6 +608,11 @@ int main( int argc, char **argv )
         output_filename = argv[2];
         //go-go-go
     }
+    else {
+        printf("error: invalid number of arguments\n");
+        usage(progname);
+        exit(0);
+    }
 
     /**** initialize variables ****/
     err = noise_remover_init( &nrm );
@@ -695,7 +700,6 @@ int main( int argc, char **argv )
         }
         
         processed++;
-        printf("\rprocessed: %u %%", processed*100/samples);
     }
     printf("\n");
     printf("%u samples has been processed\n", processed);
