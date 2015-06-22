@@ -31,11 +31,10 @@ int main( int argc, char **argv )
     char       * output_filename;
     wavefile_t * iwf = NULL;
     wavefile_t * owf = NULL;
-    int16_t      xbuf[320];
-    int16_t      ybuf[320];
+    int16_t      x;
+    int16_t      y;
     uint32_t     samples;
     uint32_t     processed;
-    int i;
 
     if(argc<=0) {
         printf("error: unexpected error\n");
@@ -116,7 +115,7 @@ int main( int argc, char **argv )
          *  1 = end of file
          * -1 = error
          */
-        err = wavefile_read_voice ( iwf, xbuf, 320 );  /* samples=320 */
+        err = wavefile_read_voice ( iwf, &x, 1 );  /* samples=1 */
         if(err<0) {
             printf("\nerror: could not read sample from input file\n");
             break;
@@ -124,12 +123,12 @@ int main( int argc, char **argv )
         else if(err==1) {
             break;
         }
+
         /* process audio */
-        for(i=0; i<320; i++) {
-            ybuf[i] = noise_remover ( &nrm, xbuf[i], 1 );  /* training=1 */
-        }
+        y = noise_remover ( &nrm, x, 1 );  /* training=1 */
+
         /* write cleaned sound to output wavefile */
-        err = wavefile_write_voice ( owf, ybuf, 320 ); /* samples=320 */
+        err = wavefile_write_voice ( owf, &y, 1 ); /* samples=1 */
         if(err<0) {
             printf("\nerror: could not write sample to output file\n");
             break;

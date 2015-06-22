@@ -102,7 +102,7 @@ int waveheader_set_default( waveheader_t * header, uint8_t wavetype )
                 header->block_align        = 2;
                 header->bits_per_sample    = 16;
                 header->extra_format_bytes = 0;
-                header->fact_length        = 4;
+                header->fact_length        = 0;        //! do not use 'fact' chunk for uncompressed data
                 header->fact_data[0]       = 0;        //! samples - must be calculated when close file
                 header->fact_data[1]       = 0;        //!
                 header->fact_data[2]       = 0;        //!
@@ -257,18 +257,20 @@ int waveheader_write( FILE * fp, waveheader_t * header )
                         return(-1);
                 }
         }
-        if( 1 != fwrite( &(header->fact[0]), sizeof(header->fact), 1, fp ) ) {
-                MYLOG_ERROR("Could not write data to file");
-                return(-1);
-        }
-        if( 1 != fwrite( &(header->fact_length), sizeof(header->fact_length), 1, fp ) ) {
-                MYLOG_ERROR("Could not write data to file");
-                return(-1);
-        }
         if( header->fact_length > 0 ) {
-                if( 1 != fwrite( &(header->fact_data[0]), header->fact_length, 1, fp ) ) {
+                if( 1 != fwrite( &(header->fact[0]), sizeof(header->fact), 1, fp ) ) {
                         MYLOG_ERROR("Could not write data to file");
                         return(-1);
+                }
+                if( 1 != fwrite( &(header->fact_length), sizeof(header->fact_length), 1, fp ) ) {
+                        MYLOG_ERROR("Could not write data to file");
+                        return(-1);
+                }
+                if( header->fact_length > 0 ) {
+                        if( 1 != fwrite( &(header->fact_data[0]), header->fact_length, 1, fp ) ) {
+                                MYLOG_ERROR("Could not write data to file");
+                                return(-1);
+                        }
                 }
         }
         if( 1 != fwrite( &(header->data[0]), sizeof(header->data), 1, fp ) ) {
@@ -355,7 +357,7 @@ int waveheader_read( FILE * fp, waveheader_t * header )
                 MYLOG_ERROR("Could not read data from file");
                 return(-1);
         }
-        if( header->fmt_length < 18 ) {
+        if( header->fmt_length < 16 ) {
                 MYLOG_ERROR("Invalid format: bad fmt_length=%d", header->fmt_length);
                 return(-1);
         }
@@ -383,18 +385,20 @@ int waveheader_read( FILE * fp, waveheader_t * header )
                 MYLOG_ERROR("Could not read data from file");
                 return(-1);
         }
-        if( 1 != fread( &(header->extra_format_bytes), sizeof(header->extra_format_bytes), 1, fp ) ) {
-                MYLOG_ERROR("Could not read data from file");
-                return(-1);
-        }
-        if( header->extra_format_bytes > sizeof(header->extra_format_data) ) {
-                MYLOG_ERROR("Invalid format: bad extra_format_bytes=%d", header->extra_format_bytes);
-                return(-1);
-        }
-        if(header->extra_format_bytes > 0) {
-                if( 1 != fread( &(header->extra_format_data[0]), header->extra_format_bytes, 1, fp ) ) {
+        if( header->fmt_length >= 18 ) {
+                if( 1 != fread( &(header->extra_format_bytes), sizeof(header->extra_format_bytes), 1, fp ) ) {
                         MYLOG_ERROR("Could not read data from file");
                         return(-1);
+                }
+                if( header->extra_format_bytes > sizeof(header->extra_format_data) ) {
+                        MYLOG_ERROR("Invalid format: bad extra_format_bytes=%d", header->extra_format_bytes);
+                        return(-1);
+                }
+                if(header->extra_format_bytes > 0) {
+                        if( 1 != fread( &(header->extra_format_data[0]), header->extra_format_bytes, 1, fp ) ) {
+                                MYLOG_ERROR("Could not read data from file");
+                                return(-1);
+                        }
                 }
         }
         //fact
@@ -407,10 +411,10 @@ int waveheader_read( FILE * fp, waveheader_t * header )
             (header->fact[2]=='c') &&
             (header->fact[3]=='t')   )
         {
-                //if(header->type != WAV_PCM) {
-                //        MYLOG_ERROR("Invalid file format: for compressed data 'fact' must exist!");
-                //        return(-1);
-                //}
+                if(header->type != WAV_PCM) {
+                        MYLOG_ERROR("Invalid file format: for compressed data 'fact' must exist!");
+                        return(-1);
+                }
                 if( 1 != fread( &(header->fact_length), sizeof(header->fact_length), 1, fp ) ) {
                         MYLOG_ERROR("Could not read data from file");
                         return(-1);
@@ -455,19 +459,19 @@ int waveheader_read( FILE * fp, waveheader_t * header )
 
         //check type and parameters are supported
         if( header->type==WAV_PCM ) {
-                if(header->fmt_length!=18) {
+                if(header->fmt_length<16) {
                         MYLOG_ERROR("Invalid format: invalid fmt_length=%d for PCM format", header->fmt_length);
                         return(-1);
                 }
         }
         else if( header->type==WAV_PCMA ) {
-                if(header->fmt_length!=18) {
+                if(header->fmt_length<16) {
                         MYLOG_ERROR("Invalid format: invalid fmt_length=%d for PCMA format", header->fmt_length);
                         return(-1);
                 }
         }
         else if( header->type==WAV_PCMU ) {
-                if(header->fmt_length!=18) {
+                if(header->fmt_length<16) {
                         MYLOG_ERROR("Invalid format: invalid fmt_length=%d for PCMU format", header->fmt_length);
                         return(-1);
                 }
@@ -532,19 +536,22 @@ wavefile_t * wavefile_create ( void )
         }
 
         //initialize variables
-        wavefile->wavetype      = WAVETYPE_NOTSET;
-        wavefile->filename[0]   = '\0';
-        wavefile->rwmode        = WAVEFILE_RWMODE_NOTSET;
+        wavefile->wavetype        = WAVETYPE_NOTSET;
+        wavefile->filename[0]     = '\0';
+        wavefile->rwmode          = WAVEFILE_RWMODE_NOTSET;
+                                  
+        wavefile->fp              = NULL;
+        wavefile->pos             = 0;
+        wavefile->end_samples     = 0;
+        wavefile->end_bytes       = 0;
+        wavefile->total_samples   = 0;
+        wavefile->total_bytes     = 0;
+                                  
+        wavefile->header          = NULL;
+        wavefile->vocoder         = NULL;
 
-        wavefile->fp            = NULL;
-        wavefile->pos           = 0;
-        wavefile->end_samples   = 0;
-        wavefile->end_bytes     = 0;
-        wavefile->total_samples = 0;
-        wavefile->total_bytes   = 0;
-
-        wavefile->header        = NULL;
-        wavefile->vocoder       = NULL;
+        wavefile->data8_bytes     = 0;
+        wavefile->voice16_samples = 0;
 
         return wavefile;
 }
@@ -624,10 +631,12 @@ int wavefile_close ( wavefile_t * wavefile )
 
                 //Fill waveheader
                 wavefile->header->file_length = waveheader_get_default_size(wavefile->wavetype) + wavefile->total_bytes - 8;
-                wavefile->header->fact_data[0] = (uint8_t)((wavefile->total_samples >> 0 ) & 0x000000FFL);
-                wavefile->header->fact_data[1] = (uint8_t)((wavefile->total_samples >> 8 ) & 0x000000FFL);
-                wavefile->header->fact_data[2] = (uint8_t)((wavefile->total_samples >> 16) & 0x000000FFL);
-                wavefile->header->fact_data[3] = (uint8_t)((wavefile->total_samples >> 24) & 0x000000FFL);
+                if(wavefile->header->fact_length >= 4) {
+                        wavefile->header->fact_data[0] = (uint8_t)((wavefile->total_samples >> 0 ) & 0x000000FFL);
+                        wavefile->header->fact_data[1] = (uint8_t)((wavefile->total_samples >> 8 ) & 0x000000FFL);
+                        wavefile->header->fact_data[2] = (uint8_t)((wavefile->total_samples >> 16) & 0x000000FFL);
+                        wavefile->header->fact_data[3] = (uint8_t)((wavefile->total_samples >> 24) & 0x000000FFL);
+                }
                 wavefile->header->data_length = wavefile->total_bytes;
 
                 //(re)Write waveheader
@@ -682,12 +691,14 @@ int wavefile_write_open ( wavefile_t * wavefile, char * filename, uint8_t wavety
         }
         //Set wave-file structure
         snprintf( wavefile->filename, sizeof(wavefile->filename), filename );
-        wavefile->wavetype      = wavetype;
-        wavefile->end_samples   = 0;
-        wavefile->end_bytes     = 0;
-        wavefile->total_samples = 0;
-        wavefile->total_bytes   = 0;
-        wavefile->rwmode = WAVEFILE_RWMODE_WRITE;
+        wavefile->wavetype        = wavetype;
+        wavefile->end_samples     = 0;
+        wavefile->end_bytes       = 0;
+        wavefile->total_samples   = 0;
+        wavefile->total_bytes     = 0;
+        wavefile->rwmode          = WAVEFILE_RWMODE_WRITE;
+        wavefile->data8_bytes     = 0;
+        wavefile->voice16_samples = 0;
 
         //Create/init vocoder if it is needed
         init_g711();
@@ -764,7 +775,7 @@ int wavefile_write_open ( wavefile_t * wavefile, char * filename, uint8_t wavety
 //inputs: wavefile = pointer to wavefile
 //        data     = pointer to data bytes
 //        bytes    = number of data bytes
-//        samples  = number of samples (must be x 320)
+//        samples  = number of samples
 //        wavetype = type of encoded data
 //returns: 0 = ok
 //        -1 = error
@@ -802,10 +813,6 @@ int wavefile_write_data ( wavefile_t * wavefile, uint8_t * data, int bytes, int 
         if(wavetype != wavefile->wavetype) {
                 MYLOG_ERROR("Invalid wavetype of data to be written: wavefile->wavetype=%d, data->wavetype=%d",
                             wavefile->wavetype, wavetype);
-                return(-1);
-        }
-        if( samples % 320 ) {
-                MYLOG_ERROR("Invalid value: samples=%d (must be x 320)",samples);
                 return(-1);
         }
         if(samples==0) {
@@ -861,17 +868,13 @@ int wavefile_write_data ( wavefile_t * wavefile, uint8_t * data, int bytes, int 
 //Write samples to opened wavefile
 //inputs: wavefile = pointer to wavefile
 //        voice    = pointer to buffer with samples
-//        samples  = number of samples (must be x 320)
+//        samples  = number of samples
 //returns: 0 = ok
 //        -1 = error
 int wavefile_write_voice ( wavefile_t * wavefile, int16_t * voice, int samples )
 {
+        int       i;
         int       n;
-        int       towrite;
-        uint8_t   data8[320];
-        int16_t * ptr16;
-        uint8_t * ptr8;
-        uint8_t * end8;
 
         //Check input parameters
         if(wavefile == NULL) {
@@ -894,10 +897,6 @@ int wavefile_write_voice ( wavefile_t * wavefile, int16_t * voice, int samples )
                 MYLOG_ERROR("Invalid value: samples=%d",samples);
                 return(-1);
         }
-        if(samples % 320) {
-                MYLOG_ERROR("Invalid value: samples=%d (must be x320)",samples);
-                return(-1);
-        }
         if(samples==0) {
                 //write nothing
                 return(0);
@@ -918,46 +917,28 @@ int wavefile_write_voice ( wavefile_t * wavefile, int16_t * voice, int samples )
                 return(0);
 
         case WAVETYPE_MONO_8000HZ_PCMA:
-                ptr16 = voice;
-                towrite = samples;
-                while( towrite >= 320 ) {
-                        //convert ptr16[] -> data8[]
-                        ptr8  = data8;
-                        end8  = data8 + 320;
-                        while( ptr8 < end8 ) {
-                                *(ptr8++) = linear2alaw( *(ptr16++) );
-                        }
-                        //write data8[] to file
-                        n = fwrite( data8, sizeof(uint8_t), 320, wavefile->fp );
-                        if(n != 320) {
-                                MYLOG_ERROR( "Could not write PCMA samples: %d samples of %d have been written: %d:%s",
-                                             n,320,errno,strerror(errno) );
+                for(i=0; i<samples; i++) {
+                        wavefile->data8[0] = linear2alaw( voice[i] );
+                        n = fwrite( wavefile->data8, sizeof(uint8_t), 1, wavefile->fp );
+                        if(n != 1) {
+                                MYLOG_ERROR( "Could not write PCMA sample: %d:%s",
+                                             errno,strerror(errno) );
                                 return(-1);
                         }
-                        towrite = towrite - 320;
                 }
                 wavefile->total_samples += samples;
                 wavefile->total_bytes   += samples;
                 return(0);
 
         case WAVETYPE_MONO_8000HZ_PCMU:
-                ptr16 = voice;
-                towrite = samples;
-                while( towrite >= 320 ) {
-                        //convert ptr16[] -> data8[]
-                        ptr8  = data8;
-                        end8  = data8 + 320;
-                        while( ptr8 < end8 ) {
-                                *(ptr8++) = linear2mulaw( *(ptr16++) );
-                        }
-                        //write data8[] to file
-                        n = fwrite( data8, sizeof(uint8_t), 320, wavefile->fp );
-                        if(n != 320) {
-                                MYLOG_ERROR( "Could not write PCMU samples: %d samples of %d have been written: %d:%s",
-                                             n,320,errno,strerror(errno) );
+                for(i=0; i<samples; i++) {
+                        wavefile->data8[0] = linear2mulaw( voice[i] );
+                        n = fwrite( wavefile->data8, sizeof(uint8_t), 1, wavefile->fp );
+                        if(n != 1) {
+                                MYLOG_ERROR( "Could not write PCMA sample: %d:%s",
+                                             errno,strerror(errno) );
                                 return(-1);
                         }
-                        towrite = towrite - 320;
                 }
                 wavefile->total_samples += samples;
                 wavefile->total_bytes   += samples;
@@ -969,28 +950,27 @@ int wavefile_write_voice ( wavefile_t * wavefile, int16_t * voice, int samples )
                         MYLOG_ERROR("wavefile->vocoder=NULL!");
                         return(-1);
                 }
-                ptr16 = voice;
-                towrite = samples;
-                while( towrite >= 320 )
-                {
-                        //convert block of 320 samples in voice[] to
-                        //65 compressed data bytes (MS GSM frame format) in data8[]
-                        // encode 1st frame
-                        gsm_encode( wavefile->vocoder, (gsm_signal *)(ptr16), (uint8_t *)(data8) );
-                        // encode 2nd frame
-                        gsm_encode( wavefile->vocoder, (gsm_signal *)(ptr16)+160, (uint8_t *)(data8)+32 );
-
-                        //write 65 GSM bytes from data8[] to file
-                        n = fwrite( data8, sizeof(uint8_t), 65, wavefile->fp );
-                        if(n!=65) {
-                                MYLOG_ERROR( "Could not write GSM610 frame: %d bytes of %d have been written: %d:%s",
-                                             n,65,errno,strerror(errno) );
+                for(i=0; i<samples; i++) {
+                        if(wavefile->voice16_samples >= 320) {
+                                //convert block of 320 samples in voice[] to
+                                //65 compressed data bytes (MS GSM frame format) in data8[]
+                                // encode 1st frame
+                                gsm_encode( wavefile->vocoder, (gsm_signal *)(wavefile->voice16), (uint8_t *)(wavefile->data8) );
+                                // encode 2nd frame
+                                gsm_encode( wavefile->vocoder, (gsm_signal *)(wavefile->voice16+160), (uint8_t *)(wavefile->data8+32) );
+        
+                                //write 65 GSM bytes from data8[] to file
+                                n = fwrite( wavefile->data8, sizeof(uint8_t), 65, wavefile->fp );
+                                if(n!=65) {
+                                        MYLOG_ERROR( "Could not write GSM610 frame: %d bytes of %d have been written: %d:%s",
+                                                    n,65,errno,strerror(errno) );
+                                }
+                                wavefile->voice16_samples -= 320;
+                                wavefile->total_bytes    += 65;
+                                wavefile->total_samples  += 320;
                         }
-                        towrite -= 320;
-                        ptr16 += 320;
-                        wavefile->total_bytes += 65;
+                        wavefile->voice16[wavefile->voice16_samples++] = voice[i];
                 }
-                wavefile->total_samples += samples;
                 return(0);
 #endif //SUPP_GSM
 
@@ -1082,7 +1062,6 @@ int wavefile_read_open ( wavefile_t * wavefile, char * filename )
                                      wavefile->header->extra_format_bytes );
                 }
                 wavefile->wavetype = WAVETYPE_MONO_8000HZ_PCM16;
-                
                 break;
         case WAV_PCMU:
                 if( (wavefile->header->channels           != 1    ) ||
@@ -1151,10 +1130,15 @@ int wavefile_read_open ( wavefile_t * wavefile, char * filename )
                 return(-1);
         }
 
-        wavefile->end_samples   = ((uint32_t)wavefile->header->fact_data[0] << 0 ) |
-                                  ((uint32_t)wavefile->header->fact_data[1] << 8 ) |
-                                  ((uint32_t)wavefile->header->fact_data[2] << 16) |
-                                  ((uint32_t)wavefile->header->fact_data[3] << 24) ;
+        if( wavefile->header->fact_length >= 4 ) {
+                wavefile->end_samples   = ((uint32_t)wavefile->header->fact_data[0] << 0 ) |
+                                          ((uint32_t)wavefile->header->fact_data[1] << 8 ) |
+                                          ((uint32_t)wavefile->header->fact_data[2] << 16) |
+                                          ((uint32_t)wavefile->header->fact_data[3] << 24) ;
+        }
+        else {
+                wavefile->end_samples   = wavefile->header->data_length >> 1;  //PCM: 2 bytes = 1 sample
+        }
         wavefile->total_samples = wavefile->end_samples;
         wavefile->end_bytes     = wavefile->header->data_length;
         wavefile->total_bytes   = wavefile->end_bytes;
@@ -1164,6 +1148,9 @@ int wavefile_read_open ( wavefile_t * wavefile, char * filename )
         MYLOG_TRACE("wavefile->total_samples=%u",wavefile->total_samples);
         MYLOG_TRACE("wavefile->end_bytes    =%u",wavefile->end_bytes    );
         MYLOG_TRACE("wavefile->total_bytes  =%u",wavefile->total_bytes  );
+
+        wavefile->data8_bytes     = 0;
+        wavefile->voice16_samples = 0;
 
         //Create/init vocoder if it is needed
         init_g711();
@@ -1273,18 +1260,14 @@ int wavefile_read_data ( wavefile_t * wavefile, uint8_t * data, int bytes, uint8
 //Read samples from opened wavefile
 //inputs:  wavefile = pointer to wavefile
 //         voice    = destination buffer for readed samples
-//         samples  = number of samples to be read (must be x320)
+//         samples  = number of samples to be read
 //returns: 0 = ok
 //         1 = end of file
 //        -1 = error
 int wavefile_read_voice ( wavefile_t * wavefile, int16_t * voice, int samples )
 {
+        int       i;
         int       n;
-        int       toread;
-        uint8_t   data8[320];
-        int16_t * ptr16;
-        uint8_t * ptr8;
-        uint8_t * end8;
 
         //Check input parameters
         if(wavefile == NULL) {
@@ -1307,11 +1290,6 @@ int wavefile_read_voice ( wavefile_t * wavefile, int16_t * voice, int samples )
                 MYLOG_ERROR("Invalid value: samples=%d",samples);
                 return(-1);
         }
-        if(samples % 320) {
-                MYLOG_ERROR("Invalid value: samples=%d (must be x 320)",samples);
-                return(-1);
-        }
-        
         if(samples==0) {
                 //read nothing
                 return(0);
@@ -1335,56 +1313,36 @@ int wavefile_read_voice ( wavefile_t * wavefile, int16_t * voice, int samples )
                 return(0);
 
         case WAVETYPE_MONO_8000HZ_PCMA:
-                ptr16  = voice;
-                toread = samples;
-                while( toread >= 320 )
-                {
-                        //read from file to data8[]
-                        n = fread( data8, sizeof(uint8_t), 320, wavefile->fp );
-                        if(n != 320) {
+                for(i=0; i<samples; i++) {
+                        n = fread( wavefile->data8, sizeof(uint8_t), 1, wavefile->fp );
+                        if(n != 1) {
                                 if( feof(wavefile->fp) ) {
                                         return(1); //end of file
                                 }
                                 else {
-                                        MYLOG_ERROR( "Could not read PCMA samples: %d bytes of %d have been read: %d:%s",
-                                                     n,320,errno,strerror(errno) );
+                                        MYLOG_ERROR( "Could not read PCMA samples: %d:%s",
+                                                     errno,strerror(errno) );
                                         return(-1);
                                 }
                         }
-                        toread = toread - 320;
-                        //convert data8[] -> ptr16[] 
-                        ptr8 = data8;
-                        end8 = data8 + 320;
-                        while( ptr8 < end8 ) {
-                                *(ptr16++) = alaw2linear( *(ptr8++) );
-                        }
+                        voice[i] = alaw2linear( wavefile->data8[0] );
                 }
                 return(0);
 
         case WAVETYPE_MONO_8000HZ_PCMU:
-                ptr16  = voice;
-                toread = samples;
-                while( toread >= 320 )
-                {
-                        //read from file to data8[]
-                        n = fread( data8, sizeof(uint8_t), 320, wavefile->fp );
-                        if(n != 320) {
+                for(i=0; i<samples; i++) {
+                        n = fread( wavefile->data8, sizeof(uint8_t), 1, wavefile->fp );
+                        if(n != 1) {
                                 if( feof(wavefile->fp) ) {
                                         return(1); //end of file
                                 }
                                 else {
-                                        MYLOG_ERROR( "Could not read PCMU samples: %d bytes of %d have been read: %d:%s",
-                                                     n,320,errno,strerror(errno) );
+                                        MYLOG_ERROR( "Could not read PCMA samples: %d:%s",
+                                                     errno,strerror(errno) );
                                         return(-1);
                                 }
                         }
-                        toread = toread - 320;
-                        //convert data8[] -> ptr16[] 
-                        ptr8 = data8;
-                        end8 = data8 + 320;
-                        while( ptr8 < end8 ) {
-                                *(ptr16++) = mulaw2linear( *(ptr8++) );
-                        }
+                        voice[i] = mulaw2linear( wavefile->data8[0] );
                 }
                 return(0);
 
@@ -1394,32 +1352,30 @@ int wavefile_read_voice ( wavefile_t * wavefile, int16_t * voice, int samples )
                         MYLOG_ERROR("wavefile->vocoder=NULL!");
                         return(-1);
                 }
-                ptr16  = voice;
-                toread = samples;
-               
-                //convert directly from file to voice[]
-                while( toread >= 320 ) {
-                        //read 65 GSM bytes from file to data8[]
-                        n = fread( data8, sizeof(uint8_t), 65, wavefile->fp );
-                        if(n!=65) {
-                                if( feof(wavefile->fp) ) {
-                                        //end of file
-                                        return(1);
+                for(i=0; i<samples; i++) {
+                        if(wavefile->voice16_samples<=0) {
+                                //read 65 GSM bytes from file to data8[]
+                                n = fread( wavefile->data8, sizeof(uint8_t), 65, wavefile->fp );
+                                if(n!=65) {
+                                        if( feof(wavefile->fp) ) {
+                                                //end of file
+                                                return(1);
+                                        }
+                                        else {
+                                                MYLOG_ERROR( "Could not read GSM610 samples: %d bytes of %d have been written: %d:%s",
+                                                            n,65,errno,strerror(errno) );
+                                                return(-1);
+                                        }
                                 }
-                                else {
-                                        MYLOG_ERROR( "Could not read GSM610 samples: %d bytes of %d have been written: %d:%s",
-                                                     n,65,errno,strerror(errno) );
-                                        return(-1);
-                                }
+                                //convert block of 65 compressed data bytes (MS GSM frame format) in data8[]
+                                //to 320 samples in voice16[]
+                                // decode 1st frame
+                                gsm_decode( wavefile->vocoder, (uint8_t*)(data8), (gsm_signal*)(wavefile->voice16) );
+                                // decode 2nd frame
+                                gsm_decode( wavefile->vocoder, (uint8_t*)(data8)+32, (gsm_signal*)(wavefile->voice16+160) );
+                                wavefile->voice16_samples += 320;
                         }
-                        //convert block of 65 compressed data bytes (MS GSM frame format) in data8[]
-                        //to 320 samples in voice[]
-                        // decode 1st frame
-                        gsm_decode( wavefile->vocoder, (uint8_t*)(data8), (gsm_signal*)(ptr16) );
-                        // decode 2nd frame
-                        gsm_decode( wavefile->vocoder, (uint8_t*)(data8)+32, (gsm_signal*)(ptr16)+160 );
-                        toread -= 320;
-                        ptr16 += 320;
+                        voice[i] = wavefile->voice16[ wavefile->voice16_samples-- ];
                 }
                 return(0);
 #endif //SUPP_GSM

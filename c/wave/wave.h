@@ -7,7 +7,6 @@
 #ifndef WAVE_H
 #define WAVE_H
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -20,7 +19,7 @@
 /* DEFINITIONS                                               */
 /*************************************************************/
 
-#define ABS_PATH_MAX  1024
+#define  ABS_PATH_MAX                 1024
 
 //Types of wave-files
 #define  WAVETYPE_NOTSET              0 //set wavetype automatically on first write operation
@@ -33,6 +32,8 @@
 #define  WAVEFILE_RWMODE_NOTSET       0
 #define  WAVEFILE_RWMODE_READ         1
 #define  WAVEFILE_RWMODE_WRITE        2
+
+#define  WAVEFILE_BUFF_SIZE           320  //>=320
 
 //------------------------------------------------------------
 //Canonical WAVE format sructure
@@ -87,6 +88,12 @@ struct wavefile_t
 
         //==== vocoder
         void *         vocoder;
+
+        uint8_t        data8[WAVEFILE_BUFF_SIZE];
+        int            data8_bytes;
+        
+        int16_t        voice16[WAVEFILE_BUFF_SIZE];
+        int            voice16_samples;
 };
 
 //NOTE:
