@@ -676,8 +676,17 @@ int main( int argc, char **argv )
         }
 
         /* process audio */
+        x = ASHIFT16(x,-2);
+
         y = noise_remover ( &nrm, x, 1 );  /* training=1 */
 
+        if( y>8192 ) // 8192 = ASHIFT16( 32768, -2 )
+            y = 32767;
+        else if( y<-8192 )
+            y = -32768;
+        else
+            y = ASHIFT16(y,+2);
+    
         /* write cleaned sound to output wavefile */
         err = wavefile_write_voice ( owf, &y, 1 ); /* samples=1 */
         if(err<0) {
