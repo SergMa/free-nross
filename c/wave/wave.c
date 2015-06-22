@@ -411,10 +411,10 @@ int waveheader_read( FILE * fp, waveheader_t * header )
             (header->fact[2]=='c') &&
             (header->fact[3]=='t')   )
         {
-                if(header->type != WAV_PCM) {
-                        MYLOG_ERROR("Invalid file format: for compressed data 'fact' must exist!");
-                        return(-1);
-                }
+                //if(header->type != WAV_PCM) {
+                //        MYLOG_ERROR("Invalid file format: for compressed data 'fact' must exist!");
+                //        return(-1);
+                //}
                 if( 1 != fread( &(header->fact_length), sizeof(header->fact_length), 1, fp ) ) {
                         MYLOG_ERROR("Could not read data from file");
                         return(-1);
@@ -1131,13 +1131,13 @@ int wavefile_read_open ( wavefile_t * wavefile, char * filename )
         }
 
         if( wavefile->header->fact_length >= 4 ) {
-                wavefile->end_samples   = ((uint32_t)wavefile->header->fact_data[0] << 0 ) |
-                                          ((uint32_t)wavefile->header->fact_data[1] << 8 ) |
-                                          ((uint32_t)wavefile->header->fact_data[2] << 16) |
-                                          ((uint32_t)wavefile->header->fact_data[3] << 24) ;
+                wavefile->end_samples = ((uint32_t)(wavefile->header->fact_data[0]) << 0 ) +
+                                        ((uint32_t)(wavefile->header->fact_data[1]) << 8 ) +
+                                        ((uint32_t)(wavefile->header->fact_data[2]) << 16) +
+                                        ((uint32_t)(wavefile->header->fact_data[3]) << 24) ;
         }
         else {
-                wavefile->end_samples   = wavefile->header->data_length >> 1;  //PCM: 2 bytes = 1 sample
+                wavefile->end_samples = wavefile->header->data_length >> 1;  //PCM: 2 bytes = 1 sample
         }
         wavefile->total_samples = wavefile->end_samples;
         wavefile->end_bytes     = wavefile->header->data_length;
