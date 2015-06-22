@@ -1,14 +1,15 @@
-/**********************************************************/
-/* Fractional arithmetics utilites                        */
-/* (c) Mashkin S.V.                                       */
-/**********************************************************/
+/******************************************************************************/
+/* FRACTIONAL ARITHMETICS UTILITES                                            */
+/* my_fract.h                                                                 */
+/* (c) Sergei Mashkin, 2015                                                   */
+/******************************************************************************/
 
 #ifndef MY_FRACT_H
 #define MY_FRACT_H
 
-/**********************************************************/
-/* Type definitions                                       */
-/**********************************************************/
+/******************************************************************************/
+/* Type definitions                                                           */
+/******************************************************************************/
 
 typedef   unsigned char         u8;
 typedef   unsigned short        u16;
@@ -19,17 +20,15 @@ typedef   signed short          s16;
 typedef   signed int            s32;
 typedef   signed long long      s64;
 
-
 typedef   short                 fract16;
 typedef   long                  fract32;
 
-/**********************************************************/
-/* FRACT 16 UTILITES                                      */
-/**********************************************************/
+/******************************************************************************/
+/* FRACT 16 UTILITES                                                          */
+/******************************************************************************/
 
 #define  FRACT16_TO_FLOAT(a)  ((float)((fract16)(a))/(32768.0))
 #define  FLOAT_TO_FRACT16(a)  ((fract16)((a)*32768))
-
 
 #ifdef _bfin_
 
@@ -38,7 +37,7 @@ typedef   long                  fract32;
 #define  SUB16(a,b)     __builtin_bfin_sub_fr1x16(a,b)
 #define  ABS16(a)       __builtin_bfin_abs_fr1x16(a)
 #define  NEG16(a)       __builtin_bfin_negate_fr1x16(a)
-#define  ASHL16(a,b)    __builtin_bfin_shl_fr1x16(a,b)  //b>=0  arithmetical left shift
+#define  ASHL16(a,b)    __builtin_bfin_shl_fr1x16(a,b)  //b>=0, arithmetical left shift
 #define  ASHR16(a,b)    __builtin_bfin_shl_fr1x16(a,-b) //b>=0  arithmetical right shift
 #define  ASHIFT16(a,b)  __builtin_bfin_shl_fr1x16(a,b)  //arithmetical shift
 #define  MIN16(a,b)     __builtin_bfin_min_fr1x16(a,b)
@@ -61,9 +60,9 @@ typedef   long                  fract32;
 
 #endif
 
-/**********************************************************/
-/* FRACT 32 UTILITES                                      */
-/**********************************************************/
+/******************************************************************************/
+/* FRACT 32 UTILITES                                                          */
+/******************************************************************************/
 
 #define  FRACT32_TO_FLOAT(a)  ((float)((fract32)(a))/(32768.0*65536.0))
 #define  FLOAT_TO_FRACT32(a)  ((fract32)((a)*32768*65536))
@@ -82,25 +81,25 @@ typedef   long                  fract32;
 #define  MAX32(a,b)    BF_MAX32(a,b)
 #define  DIV3216(a,b)  DIV32_16(a,b)
 
-#else
+#else /* #ifdef _bfin_ */
 
-#define  MULT32(a,b)    (fract32)((((s64)a)*((s64)b))>>31) //(1.31)*(1.31)=(2.62) -> convert into (1.31)
-#define  ADD32(a,b)     (a+b)                              //no saturation
-#define  SUB32(a,b)     (a-b)                              //no saturation
-#define  ABS32(a)       ((a>=0)?(a):(-a))                  //no saturation
-#define  NEG32(a)       (-(a))                             //no saturation
-#define  ASHL32(a,b)    (a<<b)  //b>=0  arithmetical left shift,  no saturation
-#define  ASHR32(a,b)    (a>>b)  //b>=0  arithmetical right shift, no saturation
-#define  ASHIFT32(a,b)  ((b>0)?(a<<b):(a>>(-b)))  //arithmetical shift, no saturation
-#define  MIN32(a,b)     ((a<b)?(a):(b))
-#define  MAX32(a,b)     ((a>b)?(a):(b))
-#define  DIV3216(a,b)   ((s16)((((s32)a)>>1)/((s32)b)))    //(1.31)/(1.15) = (2.30)/(1.15) = (1.15)
+#define  MULT32(a,b)   (fract32)((((s64)a)*((s64)b))>>31) //(1.31)*(1.31)=(2.62) -> convert into (1.31)
+#define  ADD32(a,b)    (a+b)                              //no saturation
+#define  SUB32(a,b)    (a-b)                              //no saturation
+#define  ABS32(a)      ((a>=0)?(a):(-a))                  //no saturation
+#define  NEG32(a)      (-(a))                             //no saturation
+#define  ASHL32(a,b)   (a<<b)  //b>=0  arithmetical left shift,  no saturation
+#define  ASHR32(a,b)   (a>>b)  //b>=0  arithmetical right shift, no saturation
+#define  ASHIFT32(a,b) ((b>0)?(a<<b):(a>>(-b)))  //arithmetical shift, no saturation
+#define  MIN32(a,b)    ((a<b)?(a):(b))
+#define  MAX32(a,b)    ((a>b)?(a):(b))
+#define  DIV3216(a,b)  ((s16)((((s32)a)>>1)/((s32)b)))    //(1.31)/(1.15) = (2.30)/(1.15) = (1.15)
 
-#endif
+#endif /* #ifdef _bfin_ */
 
-/**********************************************************/
-/* FRACT 16/32 UTILITES                                   */
-/**********************************************************/
+/******************************************************************************/
+/* FRACT 16/32 UTILITES                                                       */
+/******************************************************************************/
 
 volatile static union {
         struct {
@@ -114,9 +113,9 @@ volatile static union {
 #define  F16LO  convert.two16.lo
 #define  F16HI  convert.two16.hi
 
-/**********************************************************/
-/* UTILITES IMPLEMENTATIONS                               */
-/**********************************************************/
+/******************************************************************************/
+/* UTILITES IMPLEMENTATIONS                                                   */
+/******************************************************************************/
 
 #ifdef _bfin_
 
@@ -234,6 +233,6 @@ static inline fract32 BF_ASHIFT32(fract32 a, signed short b)
         return res;
 }
 
-#endif
+#endif /* #ifdef _bfin_ */
 
 #endif /* MY_FRACT_H */

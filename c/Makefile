@@ -1,23 +1,36 @@
-#########################################
-# Makefile for free-nross test programm #
-#                                       #
-# (c) Sergei Mashkin, 2015              #
-#########################################
+################################################################################
+# MAKEFILE FOR FREE-NROSS TEST PROGRAMM                                        #
+# Makefile                                                                     #
+# (c) Sergei Mashkin, 2015                                                     #
+################################################################################
 
 PROJ = free-nross
 
-CROSS_COMPILE = 
+CROSS_COMPILE =
 OUT     = out
-HEADERS =
+
+HEADERS = noise_remover.h \
+    my_fract.h \
+    wave.h \
+    mylog.h \
+    types.h \
+    g711super.h \
+    _config.h \
+    gsm.h \
+    private.h \
+    proto.h \
+    toast.h \
+    unproto.h
+
 CFLAGS  = -O0 -Wall -Werror
-DEFS    = 
+DEFS    =
 
 CFLAGS += -I.\
           -Iwave\
           -Iwave/gsmlib \
           -include "wave/gsmlib/_config.h"
 
-LFLAGS = 
+LFLAGS =
 
 CC = $(CROSS_COMPILE)gcc $(CFLAGS) $(DEFS)
 LD = $(CROSS_COMPILE)gcc $(LFLAGS)

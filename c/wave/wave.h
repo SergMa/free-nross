@@ -15,9 +15,9 @@
 
 #include <types.h>
 
-/*************************************************************/
-/* DEFINITIONS                                               */
-/*************************************************************/
+/******************************************************************************/
+/* DEFINITIONS                                                                */
+/******************************************************************************/
 
 #define  ABS_PATH_MAX                 1024
 
@@ -35,65 +35,64 @@
 
 #define  WAVEFILE_BUFF_SIZE           320  //>=320
 
-//------------------------------------------------------------
+//------------------------------------------------------------------------------
 //Canonical WAVE format sructure
 typedef struct waveheader_t waveheader_t;
 struct waveheader_t
 {
-        //==== RIFF Header for WAVE-file
-        char          riff[4];              //'RIFF'
-        uint32_t      file_length;          //(file size-8) bytes
-        char          wave[4];              //'WAVE'
+    //==== RIFF Header for WAVE-file
+    char          riff[4];              //'RIFF'
+    uint32_t      file_length;          //(file size-8) bytes
+    char          wave[4];              //'WAVE'
 
-        //==== fmt chunk
-        char          fmt[4];               //'fmt '
-        uint32_t      fmt_length;           //length of fmt data = (18+extra format bytes), bytes
-        uint16_t      type;                 //0x0001=PCM, 0x0006=alaw, 0x0007=ulaw, 0x0031=GSM610
-        uint16_t      channels;             //1=mono,2=stereo
-        uint32_t      samples_per_second;   //samples per second (44100,8000,16000,..)
-        uint32_t      bytes_per_second;     //samples_per_second * block_align
-        uint16_t      block_align;          //channels * bits_per_sample / 8
-        uint16_t      bits_per_sample;      //8 or 16
-        uint16_t      extra_format_bytes;   //number of extra format bytes
-        char          extra_format_data[2]; //set maximum supported extra format bytes here
+    //==== fmt chunk
+    char          fmt[4];               //'fmt '
+    uint32_t      fmt_length;           //length of fmt data = (18+extra format bytes), bytes
+    uint16_t      type;                 //0x0001=PCM, 0x0006=alaw, 0x0007=ulaw, 0x0031=GSM610
+    uint16_t      channels;             //1=mono,2=stereo
+    uint32_t      samples_per_second;   //samples per second (44100,8000,16000,..)
+    uint32_t      bytes_per_second;     //samples_per_second * block_align
+    uint16_t      block_align;          //channels * bits_per_sample / 8
+    uint16_t      bits_per_sample;      //8 or 16
+    uint16_t      extra_format_bytes;   //number of extra format bytes
+    char          extra_format_data[2]; //set maximum supported extra format bytes here
 
-        //==== fact chunk
-        char          fact[4];              //'fact'
-        uint32_t      fact_length;          //length of the fact block (bytes) = 4
-        char          fact_data[4];         //set maximum supported fact bytes here
+    //==== fact chunk
+    char          fact[4];              //'fact'
+    uint32_t      fact_length;          //length of the fact block (bytes) = 4
+    char          fact_data[4];         //set maximum supported fact bytes here
 
-        //==== data chunk
-        char          data[4];              //'data'
-        uint32_t      data_length;          //length of the data block (bytes, must be x2)
+    //==== data chunk
+    char          data[4];              //'data'
+    uint32_t      data_length;          //length of the data block (bytes, must be x2)
 };
 
-
-//------------------------------------------------------------
+//------------------------------------------------------------------------------
 //WAVE-FILE structure
 typedef struct wavefile_t wavefile_t;
 struct wavefile_t
 {
-        unsigned char  wavetype;               //WAVETYPE_MONO_8000HZ_PCM16 / WAVETYPE_MONO_8000HZ_PCMA / ...
-        char           filename[ABS_PATH_MAX]; //name of currently used wave-file ("" = not opened)
-        uint8_t        rwmode;
+    unsigned char  wavetype;               //WAVETYPE_MONO_8000HZ_PCM16 / WAVETYPE_MONO_8000HZ_PCMA / ...
+    char           filename[ABS_PATH_MAX]; //name of currently used wave-file ("" = not opened)
+    uint8_t        rwmode;
 
-        waveheader_t * header;
-        FILE         * fp;                     //pointer to opened file
-        long           pos;                    //current read/write  pos
+    waveheader_t * header;
+    FILE         * fp;                     //pointer to opened file
+    long           pos;                    //current read/write  pos
 
-        uint32_t       end_samples;            //samples from beginig to end mark
-        uint32_t       end_bytes;              //number of data-bytes from beginig to end mark
-        uint32_t       total_samples;          //samples from beginig to end of file
-        uint32_t       total_bytes;            //number of data-bytes from beginig to end of file
+    uint32_t       end_samples;            //samples from beginig to end mark
+    uint32_t       end_bytes;              //number of data-bytes from beginig to end mark
+    uint32_t       total_samples;          //samples from beginig to end of file
+    uint32_t       total_bytes;            //number of data-bytes from beginig to end of file
 
-        //==== vocoder
-        void *         vocoder;
+    //==== vocoder
+    void *         vocoder;
 
-        uint8_t        data8[WAVEFILE_BUFF_SIZE];
-        int            data8_bytes;
-        
-        int16_t        voice16[WAVEFILE_BUFF_SIZE];
-        int            voice16_samples;
+    uint8_t        data8[WAVEFILE_BUFF_SIZE];
+    int            data8_bytes;
+
+    int16_t        voice16[WAVEFILE_BUFF_SIZE];
+    int            voice16_samples;
 };
 
 //NOTE:
@@ -104,10 +103,9 @@ struct wavefile_t
 // sample 1 for channel 1
 //...
 
-
-/*************************************************************/
-/* FUNCTIONS                                                 */
-/*************************************************************/
+/******************************************************************************/
+/* FUNCTIONS                                                                  */
+/******************************************************************************/
 
 waveheader_t * waveheader_create           ( void );
 void           waveheader_destroy          ( waveheader_t * header );
@@ -138,6 +136,4 @@ uint32_t       wavefile_get_bytes          ( wavefile_t * wavefile );
 uint32_t       wavefile_get_samples        ( wavefile_t * wavefile );
 uint32_t       wavefile_get_seconds        ( wavefile_t * wavefile );
 
-
 #endif //WAVE_H
-

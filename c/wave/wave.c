@@ -6,11 +6,9 @@
 
 #include <wave.h>
 #include <mylog.h>
-
-#include  <string.h>
-#include  <g711super.h>
-#include  <gsm.h>      //GSM0610    (13 kbit/s)
-
+#include <string.h>
+#include <g711super.h>
+#include <gsm.h>      //GSM0610    (13 kbit/s)
 
 //types of audio coding type (look for standards)
 #define  WAV_PCM      0x0001  //PCM uncompressed
@@ -18,7 +16,6 @@
 #define  WAV_PCMA     0x0006  //ITU G.711 a-law
 #define  WAV_GSM610   0x0031  //GSM 6.10
 #define  WAV_ADPCM    0x0002  //Microsoft ADPCM
-
 
 /*************************************************************/
 /* WAVE-HEADER FUNCTIONS                                     */
@@ -406,7 +403,7 @@ int waveheader_read( FILE * fp, waveheader_t * header )
                 MYLOG_ERROR("Could not read data from file");
                 return(-1);
         }
-        if( (header->fact[0]=='f') && 
+        if( (header->fact[0]=='f') &&
             (header->fact[1]=='a') &&
             (header->fact[2]=='c') &&
             (header->fact[3]=='t')   )
@@ -433,7 +430,7 @@ int waveheader_read( FILE * fp, waveheader_t * header )
                         return(-1);
                 }
         }
-        else if( (header->fact[0]=='d') && 
+        else if( (header->fact[0]=='d') &&
                  (header->fact[1]=='a') &&
                  (header->fact[2]=='t') &&
                  (header->fact[3]=='a')   )
@@ -539,14 +536,14 @@ wavefile_t * wavefile_create ( void )
         wavefile->wavetype        = WAVETYPE_NOTSET;
         wavefile->filename[0]     = '\0';
         wavefile->rwmode          = WAVEFILE_RWMODE_NOTSET;
-                                  
+
         wavefile->fp              = NULL;
         wavefile->pos             = 0;
         wavefile->end_samples     = 0;
         wavefile->end_bytes       = 0;
         wavefile->total_samples   = 0;
         wavefile->total_bytes     = 0;
-                                  
+
         wavefile->header          = NULL;
         wavefile->vocoder         = NULL;
 
@@ -672,9 +669,9 @@ int wavefile_close ( wavefile_t * wavefile )
 int wavefile_write_open ( wavefile_t * wavefile, char * filename, uint8_t wavetype )
 {
         int err;
-        
+
         MYLOG_TRACE("@ (wavefile=%p,filename=%s,wavetype=%u",wavefile,filename,wavetype);
-        
+
         //Check input arguments
         if(wavefile == NULL) {
                 MYLOG_ERROR("Invalid value: wavefile=NULL");
@@ -782,7 +779,7 @@ int wavefile_write_open ( wavefile_t * wavefile, char * filename, uint8_t wavety
 int wavefile_write_data ( wavefile_t * wavefile, uint8_t * data, int bytes, int samples, uint8_t wavetype )
 {
         int n;
-        
+
         MYLOG_TRACE("@ (wavefile=%p,data=%p,bytes=%d,samples=%d,wavetype=%u)",wavefile,data,bytes,samples,wavetype);
 
         //Check input parameters
@@ -829,7 +826,7 @@ int wavefile_write_data ( wavefile_t * wavefile, uint8_t * data, int bytes, int 
                         return(-1);
                 }
                 break;
-                
+
         case WAVETYPE_MONO_8000HZ_PCMA:
         case WAVETYPE_MONO_8000HZ_PCMU:
                 if( samples != bytes ) {
@@ -958,7 +955,7 @@ int wavefile_write_voice ( wavefile_t * wavefile, int16_t * voice, int samples )
                                 gsm_encode( wavefile->vocoder, (gsm_signal *)(wavefile->voice16), (uint8_t *)(wavefile->data8) );
                                 // encode 2nd frame
                                 gsm_encode( wavefile->vocoder, (gsm_signal *)(wavefile->voice16+160), (uint8_t *)(wavefile->data8+32) );
-        
+
                                 //write 65 GSM bytes from data8[] to file
                                 n = fwrite( wavefile->data8, sizeof(uint8_t), 65, wavefile->fp );
                                 if(n!=65) {
@@ -1004,7 +1001,7 @@ int wavefile_write_set_end ( wavefile_t * wavefile )
 int wavefile_read_open ( wavefile_t * wavefile, char * filename )
 {
         int err;
-        
+
         //Check input arguments
         if(wavefile == NULL) {
                 MYLOG_ERROR("Invalid value: wavefile=NULL");
@@ -1124,7 +1121,7 @@ int wavefile_read_open ( wavefile_t * wavefile, char * filename )
                 break;
 #endif //SUPP_GSM
 
-        default:         
+        default:
                 MYLOG_ERROR("Unsupported type of wavefile: header->type=%d",wavefile->header->type);
                 wavefile_close(wavefile);
                 return(-1);
@@ -1206,7 +1203,7 @@ int wavefile_read_open ( wavefile_t * wavefile, char * filename )
 int wavefile_read_data ( wavefile_t * wavefile, uint8_t * data, int bytes, uint8_t * wavetype )
 {
         int n;
-        
+
         MYLOG_TRACE("@ (wavefile=%p,data=%p,bytes=%d,wavetype=%p)",wavefile,data,bytes,wavetype);
 
         //Check input parameters
