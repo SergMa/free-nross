@@ -26,6 +26,11 @@ typedef   long                  fract32;
 /**********************************************************/
 /* FRACT 16 UTILITES                                      */
 /**********************************************************/
+
+#define  FRACT16_TO_FLOAT(a)  ((float)((fract16)(a))/(32768.0))
+#define  FLOAT_TO_FRACT16(a)  ((fract16)((a)*32768))
+
+
 #ifdef _bfin_
 
 #define  MULT16(a,b)    __builtin_bfin_multr_fr1x16(a,b)
@@ -49,7 +54,7 @@ typedef   long                  fract32;
 #define  NEG16(a)       (-(a))                              //no saturation
 #define  ASHL16(a,b)    (a<<b)  //b>=0  arithmetical left shift,  no saturation
 #define  ASHR16(a,b)    (a>>b)  //b>=0  arithmetical right shift, no saturation
-#define  ASHIFT16(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift, no saturation
+#define  ASHIFT16(a,b)  ((b>0)?(a<<b):(a>>(-b)))  //arithmetical shift, no saturation
 #define  MIN16(a,b)     ((a<b)?(a):(b))
 #define  MAX16(a,b)     ((a>b)?(a):(b))
 #define  DIV16(a,b)     ((((s32)a)<<15)/((s32)b))           //(1.15)/(1.15)=(2.30)/(1.15)=(1.15)
@@ -86,10 +91,10 @@ typedef   long                  fract32;
 #define  NEG32(a)       (-(a))                             //no saturation
 #define  ASHL32(a,b)    (a<<b)  //b>=0  arithmetical left shift,  no saturation
 #define  ASHR32(a,b)    (a>>b)  //b>=0  arithmetical right shift, no saturation
-#define  ASHIFT32(a,b)  ((a>0)?(a<<b):(a>>b))  //arithmetical shift, no saturation
+#define  ASHIFT32(a,b)  ((b>0)?(a<<b):(a>>(-b)))  //arithmetical shift, no saturation
 #define  MIN32(a,b)     ((a<b)?(a):(b))
 #define  MAX32(a,b)     ((a>b)?(a):(b))
-#define  DIV3216(a,b)   ((((s32)a)<<1)/((s32)b))            //(1.31)/(1.15) = (2.30)/(1.15) = (1.15)
+#define  DIV3216(a,b)   ((s16)((((s32)a)>>1)/((s32)b)))    //(1.31)/(1.15) = (2.30)/(1.15) = (1.15)
 
 #endif
 
