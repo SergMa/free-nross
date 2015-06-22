@@ -1,24 +1,24 @@
-/*****************************************************************************/
-/* NOISE REMOVER                                                             */
-/* Mashkin S.V.                                                              */
-/* 2015                                                                      */
-/*****************************************************************************/
+/******************************************************************************/
+/* NOISE REMOVER                                                              */
+/* noise_remover.h                                                            */
+/* (c) Sergei Mashkin, 2015                                                   */
+/******************************************************************************/
 
-#ifndef DSP_NOISE_REMOVER
-#define DSP_NOISE_REMOVER
+#ifndef NOISE_REMOVER_H
+#define NOISE_REMOVER_H
 
 #include  <my_fract.h>
 
-/*****************************************************************************/
-/* DEFINITIONS                                                               */
-/*****************************************************************************/
+/******************************************************************************/
+/* DEFINITIONS                                                                */
+/******************************************************************************/
 
-#define SUBBANDS          11
-#define FILTER_LEN        25
+#define SUBBANDS    11
+#define FILTER_LEN  25
 
 struct fir_s {
     const fract16 * coeff;
-    fract16   delay[2*FILTER_LEN];
+    fract16   delay[2*FILTER_LEN]; /* see OSLEC optimization of FIR filters */
     int       pos;
 };
 
@@ -39,11 +39,11 @@ struct noise_remover_s {
     fract16          alpha    [SUBBANDS];
 };
 
-/*****************************************************************************/
-/* FUNCTIONS                                                                 */
-/*****************************************************************************/
+/******************************************************************************/
+/* FUNCTIONS                                                                  */
+/******************************************************************************/
 
 int      noise_remover_init ( struct noise_remover_s * nrm );
 fract16  noise_remover      ( struct noise_remover_s * nrm, fract16 x, int training );
 
-#endif /* DSP_NOISE_REMOVER */
+#endif /* NOISE_REMOVER_H */
