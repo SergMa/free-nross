@@ -11,6 +11,7 @@ OUT     = out
 
 HEADERS = noise_remover.h \
     my_fract.h \
+    test_fract.h \
     wave.h \
     mylog.h \
     types.h \
@@ -63,6 +64,7 @@ WAVE_OBJS = $(GSMLIB_OBJS) \
 
 OBJS = $(WAVE_OBJS) \
 	$(OUT)/noise_remover.o \
+	$(OUT)/test_fract.o \
 	$(OUT)/test.o
 
 VPATH := wave wave/gsmlib
