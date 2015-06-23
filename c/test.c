@@ -99,8 +99,8 @@ int main( int argc, char **argv )
         goto exit_fail;
     }
     printf("wavefile info:\n");
-    printf("filename : %s\n", input_filename);
-    printf("format   : ");
+    printf("  filename : %s\n", input_filename);
+    printf("  format   : ");
     switch( wavefile_get_wavetype( iwf ) ) {
     case WAVETYPE_MONO_8000HZ_PCM16:   printf("pcm16 8000 Hz\n"); break;
     case WAVETYPE_MONO_8000HZ_PCMA:    printf("pcma 8000 Hz\n"); break;
@@ -111,11 +111,10 @@ int main( int argc, char **argv )
         printf("error: only 8000 hz pcm16/pcma/pcmu/gsm formats are supported\n");
         goto exit_fail;
     }
-    printf("filesize : %u bytes\n", wavefile_get_bytes  ( iwf ) );
-    printf("length   : %u sec\n",   wavefile_get_seconds( iwf ) );
+    printf("  filesize : %u bytes\n", wavefile_get_bytes  ( iwf ) );
+    printf("  length   : %u sec\n",   wavefile_get_seconds( iwf ) );
     samples = wavefile_get_samples( iwf );
-    printf("samples  : %u\n", samples );
-    printf("\n");
+    printf("  samples  : %u\n", samples );
 
     /**** open output wavefile ****/
     err = wavefile_write_open ( owf, output_filename, WAVETYPE_MONO_8000HZ_PCM16 );
@@ -125,6 +124,7 @@ int main( int argc, char **argv )
     }
     
     /**** process audio sample by sample, make noise reduction ****/
+    printf("processing with free-nross...\n");
     processed = 0;
     while(1) {
         /* wavefile_read_voice() returns:
@@ -134,7 +134,7 @@ int main( int argc, char **argv )
          */
         err = wavefile_read_voice ( iwf, &x, 1 );  /* samples=1 */
         if(err<0) {
-            printf("\nerror: could not read sample from input file\n");
+            printf("error: could not read sample from input file\n");
             break;
         }
         else if(err==1) {
@@ -156,14 +156,13 @@ int main( int argc, char **argv )
         /* write cleaned sound to output wavefile */
         err = wavefile_write_voice ( owf, &y, 1 ); /* samples=1 */
         if(err<0) {
-            printf("\nerror: could not write sample to output file\n");
+            printf("error: could not write sample to output file\n");
             break;
         }
         
         processed++;
     }
-    printf("\n");
-    printf("%u samples has been processed\n", processed);
+    printf("%u samples has been successfully processed\n", processed);
     
     /* Close input/output wave-files */
     (void) wavefile_close( owf );
