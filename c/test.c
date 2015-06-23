@@ -11,15 +11,22 @@
 #include <noise_remover.h>
 #include <test_fract.h>
 
-void usage(char * progname)
+void usage(void)
 {
-    printf("%s usage:\n",progname);
-    printf("\t%s <wavefile1> <wavefile2>\n", progname);
-    printf("\t\tprocess <wavefile1> and write result into <wavefile2>\n");
-    printf("\t%s --test", progname);
-    printf("\t\tmake tests for fract16,fract32 arithmetics\n");
-    printf("\t%s --help", progname);
-    printf("\t\tshow this message\n");
+    char * usage_str = 
+    
+    "Usage:\n"
+    "  test <src.wav> <dst.wav>\n"
+    "    Process <src.wav> file with free-nross, output result into <dst.wav>.\n"
+    "    Note: current version of free-nross supports only 8000 Hz wave files\n"
+    "    with PCM16/PCMA/PCMU/GSM0610 compression.\n"
+    "  test --fract\n"
+    "    Make some tests for fract16, fract32 utilites.\n"
+    "  test --help\n"
+    "    Show this help message.\n"
+    "\n";
+
+    printf(usage_str);
     return;
 }
 
@@ -28,7 +35,6 @@ int main( int argc, char **argv )
 {
     struct noise_remover_s nrm;
     int          err;
-    char       * progname;
     char       * input_filename  = NULL;
     char       * output_filename = NULL;
     wavefile_t * iwf = NULL;
@@ -42,19 +48,18 @@ int main( int argc, char **argv )
         printf("error: unexpected error\n");
         exit(EXIT_SUCCESS);
     }
-    progname = argv[0];
 
     /**** Get and process command options ****/
     if(argc<=1 || argc>3) {
         printf("error: invalid number of arguments\n");
-        usage(progname);
+        usage();
         exit(EXIT_SUCCESS);
     }
     else if(argc==2 && 0==strcmp(argv[1],"--help")) {
-        usage(progname);
+        usage();
         exit(EXIT_SUCCESS);
     }
-    else if(argc==2 && 0==strcmp(argv[1],"--test")) {
+    else if(argc==2 && 0==strcmp(argv[1],"--fract")) {
         test_fract16();
         test_fract32();
         exit(EXIT_SUCCESS);
@@ -66,7 +71,7 @@ int main( int argc, char **argv )
     }
     else {
         printf("error: invalid number of arguments\n");
-        usage(progname);
+        usage();
         exit(EXIT_SUCCESS);
     }
 
