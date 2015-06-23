@@ -18,7 +18,7 @@
 #define MYLOGDEVICE_STDOUT     1  //printf()
 
 #ifndef MYLOGDEVICE
-#define MYLOGDEVICE MYLOGDEVICE_STDOUT
+#define MYLOGDEVICE MYLOGDEVICE_NOLOGS
 #endif
 
     //////////////////////////////////////////////////////////////
