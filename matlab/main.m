@@ -161,6 +161,22 @@ vy_delay = my_delay_init( SUBBANDS, ENERGY_LEN );
 % Counters
 incrtime = zeros(1,SUBBANDS);
 
+% Subband settings
+TR = zeros(1,SUBBANDS);
+TF = zeros(1,SUBBANDS);
+TIME1 = zeros(1,SUBBANDS);
+TIME2 = zeros(1,SUBBANDS);
+ATR = zeros(1,SUBBANDS);
+ATF = zeros(1,SUBBANDS);
+for k=1:SUBBANDS
+    TR(k) = 0.8;              %Raise up factor
+    TF(k) = 0.993;            %Fall down factor
+    TIME1(k) = 16000;
+    TIME2(k) = 32000;
+    ATR(k) = 0.9;   %Raise up factor
+    ATF(k) = 0.999 - k*0.01; %Fall down factor
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Main processing code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -251,13 +267,11 @@ for i=1:N
     % Make estimates of noise and speech signals
 
     % Slow envelope of signal
-    TR = 0.8;    %Raise up factor: Ts/Tr, Tr=1ms, Ts=1/8000Hz=0.125ms
-    TF = 0.993;  %Fall down factor
     for k=1:SUBBANDS
         if ey(k) > signal_e(k)
-            signal_e(k) = ey(k) - (ey(k) - signal_e(k)) * TR;
+            signal_e(k) = ey(k) - (ey(k) - signal_e(k)) * TR(k);
         else
-            signal_e(k) = signal_e(k) * TF;
+            signal_e(k) = signal_e(k) * TF(k);
         end
     end
     %signal_e = ey;
@@ -271,10 +285,10 @@ for i=1:N
             incrtime(k) = 0;
             noise_e(k) = signal_e(k);
         else
-            if incrtime(k) < 16000
+            if incrtime(k) < TIME1(k)
                 incrtime(k) = incrtime(k) + 1;
                 noise_e(k) = noise_e(k) + INCR;
-            elseif incrtime(k) < 32000
+            elseif incrtime(k) < TIME2(k)
                 incrtime(k) = incrtime(k) + 1;
                 noise_e(k) = noise_e(k) + INCR2;
             else
@@ -290,13 +304,11 @@ for i=1:N
     SENS = 1.5;
     a = max(0,signal_e - SENS*noise_e) ./ (signal_e + 0.00001*ATT);
 
-    ATR = 0.9;
-    ATF = 0.999;
     for k=1:SUBBANDS
        if a(k) > alpha(k)
-           alpha(k) = a(k) - (a(k) - alpha(k)) * ATR;
+           alpha(k) = a(k) - (a(k) - alpha(k)) * ATR(k);
        else
-           alpha(k) = alpha(k) * ATF;
+           alpha(k) = alpha(k) * ATF(k);
        end
     end
 
