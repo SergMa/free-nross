@@ -31,9 +31,9 @@ USE_AUTOSCALE = 1; % 0 - disable autoscale of input signals, 1 - enable
 
 %voice_filename = '../samples/cmu/sample1_8000.wav';         VOICE_AMP_DB = 0;
 %voice_filename = '../samples/cmu/sample2_8000.wav';         VOICE_AMP_DB = 0;
-voice_filename  = '../samples/cmu/sample3_8000.wav';         VOICE_AMP_DB = 0;
+%voice_filename = '../samples/cmu/sample3_8000.wav';         VOICE_AMP_DB = 0;  %female
 %voice_filename = '../samples/cmu/sample4_8000.wav';         VOICE_AMP_DB = 0;
-%voice_filename = '../samples/cmu/sample5_8000.wav';         VOICE_AMP_DB = 0;
+voice_filename  = '../samples/cmu/sample5_8000.wav';         VOICE_AMP_DB = 0;
 %voice_filename = '../samples/cmu/sample6_8000.wav';         VOICE_AMP_DB = 0;
 %voice_filename = '../samples/cmu/sample7_8000.wav';         VOICE_AMP_DB = 0;
 
@@ -41,8 +41,8 @@ voice_filename  = '../samples/cmu/sample3_8000.wav';         VOICE_AMP_DB = 0;
 %noise_filename = '../samples/noise/noise_pink.wav';         NOISE_AMP_DB = -12;
 %noise_filename = '../samples/noise/noise_brown.wav';        NOISE_AMP_DB = -12;
 %noise_filename = '../samples/noise/noise_badbearing.wav';   NOISE_AMP_DB = -12;
-%noise_filename = '../samples/noise/noise_diesel.wav';       NOISE_AMP_DB = -12;
-noise_filename  = '../samples/noise/noise_lacetti.wav';      NOISE_AMP_DB = -12;
+noise_filename  = '../samples/noise/noise_diesel.wav';       NOISE_AMP_DB = -6;
+%noise_filename  = '../samples/noise/noise_lacetti.wav';     NOISE_AMP_DB = -12;
 %noise_filename = '../samples/noise/noise_lacetti2.wav';     NOISE_AMP_DB = -12;
 %noise_filename = '../samples/noise/noise_tractor.wav';      NOISE_AMP_DB = -12;
 %noise_filename = '../samples/noise/noise_yamzdiesel.wav';   NOISE_AMP_DB = -12;
@@ -72,7 +72,7 @@ if USE_AUTOSCALE==1
 end
 
 % Limit lenght of signal, if needed.
-TC = 10; %sec  Set TC=0 to make no limit.
+TC = 30; %sec  Set TC=0 to make no limit.
 if TC > 0
     N = min(N_voice, TC*FS );
     x_voice = x_voice(1:N);
@@ -105,7 +105,7 @@ corr = ones(1,SUBBANDS);
 
 % transmittance coefficients of filter bank subbands
 alpha = ones(1,SUBBANDS);
-ALPHA_MIN = 0.1;
+ALPHA_MIN = 0.1/2;
 ALPHA_MAX = 1.0;
 
 % noise energy estimates of filter bank subbands
@@ -144,7 +144,7 @@ for k=1:SUBBANDS
     TIME1(k) = 16000;
     TIME2(k) = 32000;
     ATR(k)   = 0.9;            %Raise up factor
-    ATF(k)   = 0.999 - k*0.01; %Fall down factor
+    ATF(k)   = 0.999; % - k*0.01; %Fall down factor
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -203,9 +203,9 @@ for i=1:N
     %signal_e = ey;
 
     % Estimate energy of noise (three speed increment factor)
-    INCR  = ATT*2*0.0000001;
-    INCR2 = ATT*2*0.0000005;
-    INCR3 = ATT*2*0.0000025;
+    INCR  = ATT*4*0.0000001;
+    INCR2 = ATT*4*0.0000005;
+    INCR3 = ATT*4*0.0000025;
     for k=1:SUBBANDS
         if signal_e(k) < noise_e(k)
             incrtime(k) = 0;
@@ -247,7 +247,7 @@ for i=1:N
 
     % get output signal as weighted sum of subband filters outputs
     y(i) = sum( corr .* alpha .* vy2 );
-    
+
     % output scale up
     y(i) = (1/ATT) * y(i);
 
