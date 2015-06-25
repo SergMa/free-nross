@@ -12,14 +12,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [y] = mixer(x1,amp1, x2,amp2)
-
     N1 = length(x1);
     N2 = length(x2);
-    
     xx = looper(x2,N1);
-
-    w1 = 10^(amp1/20);
-    w2 = 10^(amp2/20);
-    y = x1*w1 + xx*w2;
-
+    y = x1*db2lin(amp1) + xx*db2lin(amp2);
 return
