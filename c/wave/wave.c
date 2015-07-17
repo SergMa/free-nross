@@ -5,7 +5,10 @@
 /******************************************************************************/
 
 #include <wave.h>
+
+#define MYLOGDEVICE 0 //0=MYLOGDEVICE_NOLOGS
 #include <mylog.h>
+
 #include <string.h>
 #include <g711super.h>
 #include <gsm.h>      //GSM0610    (13 kbit/s)
@@ -91,7 +94,7 @@ int waveheader_set_default( waveheader_t * header, uint8_t wavetype )
         {
         case WAVETYPE_MONO_8000HZ_PCM16:
                 header->file_length        = 0;        //! (file_length-8) - must be calculated when close file
-                header->fmt_length         = 18;
+                header->fmt_length         = 16;
                 header->type               = WAV_PCM;
                 header->channels           = 1;
                 header->samples_per_second = 8000;
@@ -244,11 +247,11 @@ int waveheader_write( FILE * fp, waveheader_t * header )
                 MYLOG_ERROR("Could not write data to file");
                 return(-1);
         }
-        if( 1 != fwrite( &(header->extra_format_bytes), sizeof(header->extra_format_bytes), 1, fp ) ) {
-                MYLOG_ERROR("Could not write data to file");
-                return(-1);
-        }
         if( header->extra_format_bytes > 0 ) {
+                if( 1 != fwrite( &(header->extra_format_bytes), sizeof(header->extra_format_bytes), 1, fp ) ) {
+                        MYLOG_ERROR("Could not write data to file");
+                        return(-1);
+                }
                 if( 1 != fwrite( &(header->extra_format_data[0]), header->extra_format_bytes, 1, fp ) ) {
                         MYLOG_ERROR("Could not write data to file");
                         return(-1);
@@ -501,7 +504,7 @@ int waveheader_get_default_size(uint8_t wavetype)
 {
         switch(wavetype)
         {
-        case WAVETYPE_MONO_8000HZ_PCM16:   return(58);
+        case WAVETYPE_MONO_8000HZ_PCM16:   return(44);
         case WAVETYPE_MONO_8000HZ_PCMA:    return(58);
         case WAVETYPE_MONO_8000HZ_PCMU:    return(58);
 #ifdef SUPP_GSM
